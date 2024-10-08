@@ -11,7 +11,7 @@ export default function Soye() {
             <h1 className="text-3xl md:text-4xl font-bold text-green mb-4">
               Soye en Septaine
             </h1>
-            
+
             {/* Image mobile */}
             <div className="lg:hidden mb-6 flex justify-center">
               <Image
@@ -26,20 +26,21 @@ export default function Soye() {
             {/* Contenu texte */}
             <div className="space-y-2 lg:space-y-4">
               <p className="text-base font-bold md:text-xl text-green">
-                Salon L'ink 7 rue de la mairie, 18340 Soye en Septaine
+                Salon L&apos;ink 7 rue de la mairie, 18340 Soye en Septaine
               </p>
               <p className="text-base md:text-xl text-green">
-                Salon de thé et de tatouage. Rendez-vous possible 1 semaine par mois et 
-                les mardis et samedis de 10h00 à 17h00.
+                Salon de thé et de tatouage. Rendez-vous possible 1 semaine par
+                mois et les mardis et samedis de 10h00 à 17h00.
               </p>
               <p className="text-base font-light md:text-xl text-green">
-                Prestations disponibles, projet tatouage et pose d'ongle.
+                Prestations disponibles, projet tatouage et pose d&apos;ongle.
               </p>
               <p className="text-base font-light md:text-xl text-green">
-                Environnement apaisant pour venir passer un bon moment proche de Bourges.
+                Environnement apaisant pour venir passer un bon moment proche de
+                Bourges.
               </p>
             </div>
-          
+
             {/* Boutons */}
             <div className="mt-8">
               <div className="flex space-x-4 mb-4">
