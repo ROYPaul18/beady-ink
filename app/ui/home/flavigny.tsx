@@ -37,14 +37,14 @@ export default function Flavi() {
             {/* Contenu texte (aligné à droite) */}
             <div className="space-y-2 lg:space-y-4 text-right">
               <p className="text-base font-bold md:text-xl text-green">
-                Salon d&apos;ink 7 rue de la mairie, 18340 Soye en Septaine
+                Salon l'ink 7 rue de la mairie, 18340 Soye en Septaine
               </p>
               <p className="text-base md:text-xl text-green">
                 Salon de thé et de tatouage. Rendez-vous possible 1 semaine par mois et 
                 les mardis et samedis de 10h00 à 17h00.
               </p>
               <p className="text-base font-light md:text-xl text-green">
-                Prestations disponibles, projet tatouage et pose d&apos;ongle.
+                Prestations disponibles, projet tatouage et pose d'ongle.
               </p>
               <p className="text-base font-light md:text-xl text-green">
                 Environnement apaisant pour venir passer un bon moment proche de Bourges.
