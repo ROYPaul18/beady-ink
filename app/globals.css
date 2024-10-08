@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap');
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -17,11 +17,14 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Cinzel", serif;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+.gradient-gold {
+  background: linear-gradient(90deg, #E3A455 7%, #F6DBA6 24%, #FFEBC3 43%, #F0BE79 53%, #8F653B 59%, #673D22 63%, #BA7F3B 71%, #EEBC70 92%);
 }
