@@ -94,14 +94,14 @@ export default function Header() {
               <div className="absolute top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 z-50 w-48">
                 <ul className="flex flex-col text-center space-y-4">
                   <li>
-                    <Link href="/signup" onClick={closeDropdown} className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all">
+                    <Link href="/sign-in" onClick={closeDropdown} className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all">
                       Se créer un compte
                     </Link>
                   </li>
 
                   {/* Se connecter - Bouton avec style de contour */}
                   <li>
-                    <Link href="/login" onClick={closeDropdown} className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all">
+                    <Link href="/sign-up" onClick={closeDropdown} className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all">
                       Se connecter
                     </Link>
                   </li>
