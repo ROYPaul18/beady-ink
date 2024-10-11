@@ -1,9 +1,22 @@
-import React from 'react'
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function page() {
+export default async function AdminPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect('/sign-in');
+  }
+
+  if (session.user.role !== 'ADMIN') {
+    redirect('/');
+  }
+
   return (
     <div>
-      Welcome to admin
+      <h1>Admin Dashboard</h1>
+      {session?.user.username}
     </div>
-  )
+  );
 }
