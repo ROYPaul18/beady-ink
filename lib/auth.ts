@@ -41,11 +41,13 @@ export const authOptions: NextAuthOptions = {
         if (!passwordMatch) {
           return null;
         }
+
+        // Convert `id` to a string to conform with the expected type
         return {
-          id: existingUser.id,
+          id: String(existingUser.id), // Ensure id is a string
           username: existingUser.username,
           email: existingUser.email,
-          role: existingUser.role, // Inclure le rôle
+          role: existingUser.role, // Include the role
         };
       },
     }),
@@ -56,7 +58,7 @@ export const authOptions: NextAuthOptions = {
         token = {
           ...token,
           username: user.username,
-          role: user.role, // Inclure le rôle dans le token
+          role: user.role, // Include the role in the token
         };
       }
       return token;
@@ -67,7 +69,7 @@ export const authOptions: NextAuthOptions = {
         user: {
           ...session.user,
           username: token.username,
-          role: token.role, // Inclure le rôle dans la session
+          role: token.role, // Include the role in the session
         },
       };
     },
