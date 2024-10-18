@@ -5,7 +5,7 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout: FC<AuthLayoutProps> = ({ children }) => {
-  return <div className="bg-[url('/img/bg-marbre.png')] p-10">{children}</div>;
+  return <div className="bg-[url('/img/bg-marbre.png')] p-8">{children}</div>;
 };
 
 export default AuthLayout;

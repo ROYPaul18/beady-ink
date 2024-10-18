@@ -1,20 +1,32 @@
-import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
-import "next-auth/jwt";
+import NextAuth from "next-auth";
 
+// Ajouter les propriétés `nom` et `prenom` au type User dans NextAuth
 declare module "next-auth" {
-  interface User extends DefaultUser {
-    username: string;
+  interface User {
+    id: string;
+    nom: string;
+    prenom: string;
+    email: string;
     role: string;
   }
 
-  interface Session extends DefaultSession {
-    user: User;
+  interface Session {
+    user: {
+      id: string;
+      nom: string;
+      prenom: string;
+      email: string;
+      role: string;
+    };
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    username: string;
+    id: string;
+    nom: string;
+    prenom: string;
+    email: string;
     role: string;
   }
 }

@@ -28,26 +28,31 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
+
         const existingUser = await db.user.findUnique({
           where: { email: credentials.email },
         });
+
         if (!existingUser) {
           return null;
         }
+
         const passwordMatch = await compare(
           credentials.password,
           existingUser.password
         );
+
         if (!passwordMatch) {
           return null;
         }
 
-        // Convert `id` to a string to conform with the expected type
+        // Renvoie les champs `nom`, `prenom`, `email` et `role` au lieu de `username`
         return {
-          id: String(existingUser.id), // Ensure id is a string
-          username: existingUser.username,
+          id: String(existingUser.id),
+          nom: existingUser.nom,
+          prenom: existingUser.prenom,
           email: existingUser.email,
-          role: existingUser.role, // Include the role
+          role: existingUser.role,
         };
       },
     }),
@@ -57,8 +62,9 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token = {
           ...token,
-          username: user.username,
-          role: user.role, // Include the role in the token
+          nom: user.nom,
+          prenom: user.prenom,
+          role: user.role,
         };
       }
       return token;
@@ -68,8 +74,9 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          username: token.username,
-          role: token.role, // Include the role in the session
+          nom: token.nom,
+          prenom: token.prenom,
+          role: token.role,
         },
       };
     },

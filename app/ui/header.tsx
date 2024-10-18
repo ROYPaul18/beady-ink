@@ -1,14 +1,24 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react"; 
+import { usePathname } from "next/navigation";  // Utiliser usePathname pour récupérer la route actuelle
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const { data: session, status } = useSession(); 
+  const pathname = usePathname();  // Obtenez la route actuelle avec usePathname
+
+  // Définir dynamiquement l'image de fond en fonction de la route
+  const getBackgroundImage = () => {
+    if (pathname === '/tatouage' || pathname === '/tattoo') {
+      return '/img/bg-fleur.jpg';
+    } else {
+      return '/img/bg-feuille.jpg';  // Image par défaut
+    }
+  };
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -26,29 +36,34 @@ const Header = () => {
     setDropdownOpen(false);
   };
 
+  // Désactiver le scroll si le menu est ouvert
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        closeMenu();
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";  // Désactiver le scroll
+    } else {
+      document.body.style.overflow = "auto";  // Réactiver le scroll
+    }
 
-  
+    return () => {
+      document.body.style.overflow = "auto";  // Toujours réactiver le scroll quand le composant est démonté
+    };
+  }, [menuOpen]);
+
   const isAuthenticated = status === 'authenticated';
   const isAdmin = session?.user?.role === 'ADMIN';
 
   return (
-    <header className={`relative bg-[url('/img/bg-feuille.jpg')] bg-cover bg-center ${menuOpen ? "h-screen" : "h-auto"}`}>
+    <header 
+      style={{ backgroundImage: `url(${getBackgroundImage()})` }} // Utilisation du style inline pour définir l'image de fond
+      className={`relative bg-cover bg-center ${menuOpen ? "h-screen" : "h-auto"}`}
+    >
       <div className="flex justify-between items-center p-4 relative z-50">
-        <h1 className="text-3xl lg:text-6xl font-bold md:text-center md:flex-grow">
+        <h1 className="text-3xl lg:text-6xl font-bold md:text-center md:flex-grow text-white">
           Beaudy Ink
         </h1>
-        <p>{session?.user?.username}</p>
+        <p>{session?.user?.nom}</p>
         <button
-          className="block lg:hidden text-3xl focus:outline-none"
+          className="block lg:hidden text-3xl focus:outline-none text-white"
           onClick={toggleMenu}
         >
           {menuOpen ? '✕' : '☰'}
@@ -58,22 +73,22 @@ const Header = () => {
       <nav
         className={`${
           menuOpen 
-            ? "fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-[url('/img/bg-feuille.jpg')] bg-cover bg-center pt-20"
+            ? "fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-cover bg-center pt-20"
             : "hidden"
         } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0`}
       >
         {/* Liens de navigation */}
         <div className="flex flex-col items-center lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:ml-20 lg:mr-20">
-          <h1 className="text-2xl p-4 text-center">
+          <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/" onClick={closeMenu}>Accueil</Link>
           </h1>
-          <h1 className="text-2xl p-4 text-center">
+          <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/onglerie" onClick={closeMenu}>Onglerie</Link>
           </h1>
-          <h1 className="text-2xl p-4 text-center">
+          <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/tatouage" onClick={closeMenu}>Tatouage</Link>
           </h1>
-          <h1 className="text-2xl p-4 text-center">
+          <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/tattoo" onClick={closeMenu}>Flash Tattoo</Link>
           </h1>
         </div>
@@ -89,7 +104,7 @@ const Header = () => {
                 viewBox="0 0 24 24"
                 strokeWidth={2}
                 stroke="currentColor"
-                className="w-8 h-8"
+                className="w-8 h-8 text-white"
               >
                 <path
                   strokeLinecap="round"
@@ -167,7 +182,7 @@ const Header = () => {
         </div>
       </nav>
 
-      <div className="absolute bottom-0 w-full h-[4px] md:h-[6px] gradient-gold z-50"></div>
+      <div className="absolute bottom-0 w-full h-[4px] md:h-[6px] gradient-gold z-0"></div>
     </header>
   );
 };

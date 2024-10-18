@@ -1,8 +1,29 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function Footer() {
+  const pathname = usePathname();  // Utiliser usePathname pour obtenir la route actuelle
+
+  // Définir dynamiquement l'image de fond en fonction de la route
+  const getBackgroundImage = () => {
+    if (pathname === '/tatouage' || pathname === '/tattoo') {
+      return '/img/bg-fleur.jpg';  // Image spécifique pour les pages tatouage
+    } else {
+      return '/img/bg-feuille.jpg';  // Image par défaut
+    }
+  };
+
   return (
-    <footer className="bg-[url('/img/bg-feuille.jpg')] bg-cover bg-center border-t-2 border-gradient-gold py-6 w-full">
+    <footer
+      style={{ backgroundImage: `url(${getBackgroundImage()})` }}  // Utilisation du style inline pour changer l'image de fond
+      className="relative bg-cover bg-center py-6 w-full"
+    >
+      {/* Bande dorée */}
+      <div className="absolute top-0 w-full h-[4px] md:h-[6px] gradient-gold "></div>
+      
       {/* Conteneur principal - ajusté pour mobile */}
       <div className="flex flex-col w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 lg:space-y-0 lg:flex-row lg:justify-between lg:items-center">
         

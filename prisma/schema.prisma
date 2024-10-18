@@ -1,48 +1,77 @@
 generator client {
-  provider = "prisma-client-js"
-   disableQueryRaw = true
+  provider        = "prisma-client-js"
+  disableQueryRaw = true
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  nom          String       @default("Nom temporaire")  // Valeur par défaut temporaire
+  prenom       String       @default("Prénom temporaire") // Valeur par défaut temporaire
+  telephone    String       @unique @default("0000000000")  // Valeur par défaut temporaire
+  password     String
+  role         Role         @default(USER)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  reservations Reservation[]
+}
+
+model Service {
   id            Int           @id @default(autoincrement())
-  email         String        @unique
-  username      String        @unique
-  password      String
-  role          Role          @default(USER)
+  type          ServiceType   @unique // Ajouter la contrainte d'unicité ici
+  prestations   Prestation[]
   reservations  Reservation[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
 
-model Service {
-  id           Int           @id @default(autoincrement())
-  name         String
-  description  String
-  duration     Int           
-  imageUrl     String
-  reservations Reservation[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+model Prestation {
+  id          Int      @id @default(autoincrement())
+  name        String
+  duration    Int
+  description String
+  price       Float
+  serviceId   Int
+  service     Service   @relation(fields: [serviceId], references: [id])
+  images      Image[]   // Une prestation peut avoir plusieurs images
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
+model Image {
+  id           Int        @id @default(autoincrement())
+  url          String     // Chemin ou URL de l'image
+  prestationId Int        // Clé étrangère vers Prestation
+  prestation   Prestation @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+}
+
+
 model Reservation {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  service   Service  @relation(fields: [serviceId], references: [id])
-  serviceId Int
-  date      DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int          @id @default(autoincrement())
+  user         User         @relation(fields: [userId], references: [id])
+  userId       Int
+  service      Service      @relation(fields: [serviceId], references: [id])
+  serviceId    Int
+  date         DateTime
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 enum Role {
   USER
   CLIENT
   ADMIN
+}
+
+enum ServiceType {
+  ONGLERIE
+  TATOUAGE
+  FLASH_TATTOO
 }

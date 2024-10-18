@@ -1,67 +1,62 @@
-import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
-import * as z from 'zod';
+import { db } from "@/lib/db";  // Modifier selon votre configuration
+import * as z from "zod";
 
+// Schéma de validation des données d'inscription
 const userSchema = z.object({
-  username: z.string().min(1, 'Username is required').max(100),
-  email: z.string().min(1, 'Email is required').email('Invalid email'),
-  password: z
-    .string()
-    .min(1, 'Password is required')
-    .min(8, 'Password must have more than 8 characters'),
+  nom: z.string().min(1, "Le nom est requis").max(100),
+  prenom: z.string().min(1, "Le prénom est requis").max(100),
+  telephone: z.string().regex(/^(\d{10}|\d{2} \d{2} \d{2} \d{2} \d{2})$/, "Le numéro de téléphone doit être au format 1234567890 ou 12 34 56 78 90"),
+  email: z.string().email("L'email est invalide"),
+  password: z.string().min(8, "Le mot de passe doit comporter au moins 8 caractères"),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const { email, nom, prenom, telephone, password } = userSchema.parse(body);
 
-    // Validate request body
-    const { email, username, password } = userSchema.parse(body);
-
-    // Check if email or username already exists
+    // Vérifier si l'email ou le numéro de téléphone existe déjà
     const existingUserByEmail = await db.user.findUnique({ where: { email } });
-    const existingUserByUsername = await db.user.findUnique({ where: { username } });
-
     if (existingUserByEmail) {
-      return NextResponse.json({ message: "Un utilisateur possède déjà cet email !" }, { status: 409 });
+      return NextResponse.json({ message: "Un utilisateur avec cet email existe déjà !" }, { status: 409 });
     }
 
-    if (existingUserByUsername) {
-      return NextResponse.json({ message: "Un utilisateur possède déjà ce pseudo !" }, { status: 409 });
+    const existingUserByPhone = await db.user.findFirst({ where: { telephone } });
+    if (existingUserByPhone) {
+      return NextResponse.json({ message: "Un utilisateur avec ce numéro de téléphone existe déjà !" }, { status: 409 });
     }
 
-    const hashPassword = await hash(password, 10);
+    // Hacher le mot de passe avant de l'enregistrer
+    const hashedPassword = await hash(password, 10);
 
-    // Create new user with default role 'USER'
+    // Créer un nouvel utilisateur
     const newUser = await db.user.create({
       data: {
-        username,
+        nom,
+        prenom,
+        telephone,
         email,
-        password: hashPassword,
-        role: 'USER', // Default role
+        password: hashedPassword,
+        role: 'USER',
       },
     });
 
-    // Exclude password from the response
-    const { password: newUserPassword, ...rest } = newUser;
+    // Exclure le mot de passe de la réponse
+    const { password: _, ...rest } = newUser;
 
+    // Retourner la réponse de succès
     return NextResponse.json({ user: rest, message: "Utilisateur créé avec succès" }, { status: 201 });
 
-  } catch (error: unknown) {
-    // Handle Zod validation errors separately
+  } catch (error) {
+    // Gérer les erreurs de validation Zod
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: "Validation Error", errors: error.errors }, { status: 400 });
+      return NextResponse.json({ message: "Erreur de validation", errors: error.errors }, { status: 400 });
     }
 
-    // Check if error is an instance of the built-in Error class
-    if (error instanceof Error) {
-      console.error("Error creating user:", error.message);
-      return NextResponse.json({ message: `Erreur 500: ${error.message}` }, { status: 500 });
-    }
-
-    // Handle any other unknown type of error
-    console.error("Unknown error", error);
-    return NextResponse.json({ message: "Erreur 500: An unknown error occurred" }, { status: 500 });
+    // Gérer les erreurs inattendues
+    console.error("Erreur lors de l'inscription :", error);
+    return NextResponse.json({ message: "Erreur 500: Une erreur est survenue" }, { status: 500 });
   }
 }

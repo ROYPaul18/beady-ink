@@ -1,25 +1,32 @@
-import type { Config } from "tailwindcss";
+// tailwind.config.js
+
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: ['class'],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        green: "#454C22",
-        red:"#9B2D30",
-        beige:"#E8E3D4",
-        lightblue:"#CBD4DD"
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        green: '#454C22',
+        red: '#9B2D30',
+        beige: '#E8E3D4',
+        lightblue: '#CBD4DD',
       },
-      
+      backgroundImage: {
+        'feuille': "url('/img/bg-feuille.jpg')",
+        'tatouage': "url('/img/13.png')",
+        'flash-tattoo': "url('/img/13.png')",
+      }
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 };
 
 export default config;
