@@ -12,9 +12,9 @@ datasource db {
 model User {
   id           Int          @id @default(autoincrement())
   email        String       @unique
-  nom          String       @default("Nom temporaire")  // Valeur par défaut temporaire
-  prenom       String       @default("Prénom temporaire") // Valeur par défaut temporaire
-  telephone    String       @unique @default("0000000000")  // Valeur par défaut temporaire
+  nom          String       @default("Nom temporaire")  
+  prenom       String       @default("Prénom temporaire") 
+  telephone    String       @unique @default("0000000000")  
   password     String
   role         Role         @default(USER)
   createdAt    DateTime     @default(now())
@@ -24,7 +24,7 @@ model User {
 
 model Service {
   id            Int           @id @default(autoincrement())
-  type          ServiceType   @unique // Ajouter la contrainte d'unicité ici
+  type          ServiceType   @unique 
   prestations   Prestation[]
   reservations  Reservation[]
   createdAt     DateTime      @default(now())
@@ -39,19 +39,18 @@ model Prestation {
   price       Float
   serviceId   Int
   service     Service   @relation(fields: [serviceId], references: [id])
-  images      Image[]   // Une prestation peut avoir plusieurs images
+  images      Image[]   // Relation avec le modèle Image (1 prestation peut avoir plusieurs images)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
 model Image {
   id           Int        @id @default(autoincrement())
-  url          String     // Chemin ou URL de l'image
-  prestationId Int        // Clé étrangère vers Prestation
-  prestation   Prestation @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  url          String     // URL de l'image sur Cloudinary
+  prestationId Int        // Clé étrangère vers la prestation
+  prestation   Prestation @relation(fields: [prestationId], references: [id], onDelete: Cascade) 
   createdAt    DateTime   @default(now())
 }
-
 
 model Reservation {
   id           Int          @id @default(autoincrement())
