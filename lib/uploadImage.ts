@@ -1,11 +1,10 @@
 // lib/uploadImage.ts
-
 import { Formidable, Fields, Files, File } from 'formidable';
 import { z } from 'zod';
 import { ServiceType } from '@prisma/client';
 import { promises as fs } from 'fs';
-import { join } from 'path';
 import { db } from '@/lib/db';
+import cloudinary from '@/lib/cloudinary';
 
 // Schéma de validation pour la prestation
 const prestationSchema = z.object({
@@ -16,29 +15,25 @@ const prestationSchema = z.object({
   serviceType: z.nativeEnum(ServiceType),
 });
 
-// Fonction d'aide pour extraire une chaîne unique
-const getFirst = (field: string | string[] | undefined): string => {
-  if (Array.isArray(field)) {
-    return field[0];
-  }
-  return field || '';
-};
-
 // Fonction pour traiter le formulaire
-export const processPrestationForm = async (request: Request) => {
+export const processPrestationForm = async (req: Request) => {
   const form = new Formidable({ multiples: true, keepExtensions: true });
+  const incomingMessage = req as any; // Cast pour le traitement avec Formidable
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [fields, files] = await form.parse(request as any) as [Fields, Files];
+  const { fields, files } = await new Promise<{ fields: Fields; files: Files }>((resolve, reject) => {
+    form.parse(incomingMessage, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
+  });
 
-  // Extraire et convertir les champs
-  const name = getFirst(fields.name);
-  const duration = Number(getFirst(fields.duration));
-  const price = Number(getFirst(fields.price));
-  const description = getFirst(fields.description);
-  const serviceType = getFirst(fields.serviceType);
+  const name = fields.name?.toString() || '';
+  const duration = parseInt(fields.duration?.toString() || '0', 10);
+  const description = fields.description?.toString() || '';
+  const price = parseFloat(fields.price?.toString() || '0');
+  const serviceType = fields.serviceType?.toString() || '';
 
-  // Valider les données textuelles avec Zod
+  // Valider les données avec Zod
   const prestationData = prestationSchema.parse({
     name,
     duration,
@@ -47,7 +42,6 @@ export const processPrestationForm = async (request: Request) => {
     serviceType,
   });
 
-  // Recherche du service en fonction du type
   const service = await db.service.findUnique({
     where: {
       type: prestationData.serviceType,
@@ -58,35 +52,32 @@ export const processPrestationForm = async (request: Request) => {
     throw new Error(`Le type de service ${prestationData.serviceType} est introuvable.`);
   }
 
-  // Traitement des fichiers d'images
-  const images = Array.isArray(files.image) ? files.image : [files.image];
-  const imageUrls: string[] = [];
+  return { prestationData, service, files };
+};
 
-  for (const image of images) {
-    if (image instanceof File) {
-      const originalFilename = image.originalFilename || 'unknown.jpg';
-      const filepath = image.filepath;
+// Fonction pour uploader une image sur Cloudinary
+export const uploadImageToCloudinary = async (file: File, folder: string): Promise<string> => {
+  const buffer = await fs.readFile(file.filepath);
 
-      // Définir le répertoire de destination en fonction du serviceType
-      const serviceDir = join(process.cwd(), 'public/img', prestationData.serviceType);
+  const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        transformation: [
+          { width: 800, height: 800, crop: 'limit' }, // Limite la taille de l'image à 800x800 pixels
+          { quality: 'auto:eco', fetch_format: 'auto' }, // Optimisation automatique de la qualité
+        ],
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result!);
+      }
+    );
+    uploadStream.end(buffer);
+  });
 
-      // Créer le répertoire s'il n'existe pas
-      await fs.mkdir(serviceDir, { recursive: true });
+  // Supprimer le fichier temporaire après téléchargement
+  await fs.unlink(file.filepath);
 
-      // Définir un nom de fichier unique
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const fileExtension = originalFilename.split('.').pop() || 'jpg'; // Par défaut jpg si aucune extension
-      const fileName = `${uniqueSuffix}.${fileExtension}`;
-      const newPath = join(serviceDir, fileName);
-
-      // Déplacer le fichier vers le répertoire du service
-      await fs.rename(filepath, newPath);
-
-      // Construire l'URL relative
-      const imageUrl = `/img/${prestationData.serviceType}/${fileName}`;
-      imageUrls.push(imageUrl);
-    }
-  }
-
-  return { prestationData, service, imageUrls };
+  return result.secure_url;
 };

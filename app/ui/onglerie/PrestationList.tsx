@@ -1,6 +1,7 @@
 "use client"; // Indique que c'est un Client Component
 
 import { useRouter } from "next/navigation"; // Importer depuis next/navigation
+import { useState } from "react";
 import { Prestation } from "@/lib/types";
 import Image from "next/image"; // Importer le composant Image
 
@@ -17,38 +18,77 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations }) => {
   };
 
   if (!prestations.length) {
-    return <div>Aucune prestation trouvée</div>;
+    return <div className="text-center text-gray-500">Aucune prestation trouvée</div>;
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       {prestations.map((prestation) => (
-        <div key={prestation.id} className="mb-6 p-4 border rounded-lg">
-          <h3 className="text-2xl font-bold">{prestation.name}</h3>
-          <p>Prix : {prestation.price} €</p>
-          <p>Durée : {prestation.duration} minutes</p>
-          <p>Description : {prestation.description}</p>
-          <div className="mt-4 flex space-x-2">
-            {prestation.images.map((image, index) => (
-              <Image
-                key={index}
-                src={image.url}
-                alt={`Image ${index + 1}`}
-                width={100}
-                height={100}
-                className="object-cover rounded-md"
-              />
-            ))}
+        <div key={prestation.id} className="flex bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="w-1/3">
+            <ImageSlider images={prestation.images} />
           </div>
-          {/* Bouton pour réserver */}
-          <button
-            onClick={() => handleReservationClick(prestation.id)}
-            className="mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
-          >
-            Réserver cette prestation
-          </button>
+          <div className="w-2/3 p-6 flex flex-col justify-between">
+            <div>
+              <h3 className="text-2xl font-bold mb-2">{prestation.name}</h3>
+              <p className="text-gray-700 mb-1">Prix : {prestation.price} €</p>
+              <p className="text-gray-700 mb-1">Durée : {prestation.duration} minutes</p>
+              <p className="text-gray-700 mb-4">{prestation.description}</p>
+            </div>
+            <button
+              onClick={() => handleReservationClick(prestation.id)}
+              className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200"
+            >
+              Réserver cette prestation
+            </button>
+          </div>
         </div>
       ))}
+    </div>
+  );
+};
+
+// Composant pour le slider d'images
+const ImageSlider: React.FC<{ images: { url: string }[] }> = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
+  };
+
+  if (images.length === 0) {
+    return <div className="h-full bg-gray-100 flex items-center justify-center text-gray-400">Pas d'images disponibles</div>;
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={images[currentIndex].url}
+        alt={`Image ${currentIndex + 1}`}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={handlePrev}
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75"
+          >
+            ◀
+          </button>
+          <button
+            onClick={handleNext}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75"
+          >
+            ▶
+          </button>
+        </>
+      )}
     </div>
   );
 };

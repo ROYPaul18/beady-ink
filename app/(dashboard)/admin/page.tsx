@@ -1,11 +1,16 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Prestation } from "@prisma/client";
 import { db } from "@/lib/db";
 import AddPrestationModal from "@/app/ui/admin/AddPrestationModal";
 import AddServiceModal from "@/app/ui/admin/AddServiceModal";
-import PrestationList from "@/app/ui/admin/PrestationList"; 
+import PrestationList from "@/app/ui/admin/PrestationList";
+import { Prestation, Image } from "@prisma/client";
+
+// Définir le type avec les images associées
+export interface PrestationWithImages extends Prestation {
+  images: Image[];
+}
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -15,10 +20,14 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  // Récupérer les prestations depuis la base de données
-  const prestations: Prestation[] = await db.prestation.findMany({
+  // Récupérer les prestations depuis la base de données avec les images associées
+  const prestations: PrestationWithImages[] = await db.prestation.findMany({
     where: { serviceId: 1 }, // Ajustez selon vos besoins
+    include: {
+      images: true, // Inclure les images dans les données récupérées
+    },
   });
+
   console.log('Prestations from database:', prestations);
 
   return (
@@ -39,7 +48,6 @@ export default async function AdminPage() {
 
         {/* Passe les prestations au composant client */}
         <PrestationList prestations={prestations} />
-
       </div>
     </div>
   );
