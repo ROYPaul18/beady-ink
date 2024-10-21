@@ -58,6 +58,7 @@ export async function POST(req: Request) {
 
     // Lire le contenu de la requête en tant que FormData
     const formData = await req.formData();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fields: Record<string, any> = {};
     const images: Buffer[] = [];
 
@@ -111,15 +112,17 @@ export async function POST(req: Request) {
       },
       include: { images: true },
     });
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     return NextResponse.json({ prestation: newPrestation, message: 'Prestation ajoutée avec succès' }, { status: 201 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
+
     console.error('Erreur lors de la création de la prestation:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: 'Validation des données échouée', errors: error.errors }, { status: 400 });
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return NextResponse.json({ message: 'Erreur lors de la création de la prestation' }, { status: 500 });
   }
 }

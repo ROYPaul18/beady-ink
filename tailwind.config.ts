@@ -18,6 +18,8 @@ const config: Config = {
         red: '#9B2D30',
         beige: '#E8E3D4',
         lightblue: '#CBD4DD',
+        purpleclair: '#5D4948',
+        marron: '#1D0002',
       },
       backgroundImage: {
         'feuille': "url('/img/bg-feuille.jpg')",

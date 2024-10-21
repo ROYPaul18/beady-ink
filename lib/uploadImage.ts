@@ -18,6 +18,7 @@ const prestationSchema = z.object({
 // Fonction pour traiter le formulaire
 export const processPrestationForm = async (req: Request) => {
   const form = new Formidable({ multiples: true, keepExtensions: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const incomingMessage = req as any; // Cast pour le traitement avec Formidable
 
   const { fields, files } = await new Promise<{ fields: Fields; files: Files }>((resolve, reject) => {
@@ -57,6 +58,7 @@ export const processPrestationForm = async (req: Request) => {
 
 // Fonction pour uploader une image sur Cloudinary
 export const uploadImageToCloudinary = async (file: File, folder: string): Promise<string> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buffer = await fs.readFile(file.filepath);
 
   const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
