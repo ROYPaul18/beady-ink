@@ -39,7 +39,7 @@ const FormSchema = z.object({
   password: z.string().min(8, "Le mot de passe doit comporter au moins 8 caractères"),
   confirmPassword: z.string().min(1, "La confirmation est requise"),
 }).refine((data) => data.password === data.confirmPassword, {
-  path: ["confirmPassword"],  // Indiquer où l'erreur doit apparaître
+  path: ["confirmPassword"],
   message: "Les mots de passe ne correspondent pas",
 });
 
@@ -59,7 +59,12 @@ const SignUpForm = () => {
     },
   });
 
-  // Gérer la soumission du formulaire
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhoneNumber = formatPhoneNumber(e.target.value);
+    setPhoneNumber(formattedPhoneNumber);
+    form.setValue("telephone", formattedPhoneNumber);
+  };
+
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     try {
       const response = await fetch("/api/user", {
@@ -77,37 +82,25 @@ const SignUpForm = () => {
       });
 
       if (response.ok) {
-        // Rediriger vers la page de connexion après l'inscription
         router.push("/sign-in");
       } else {
         const errorData = await response.json();
-        alert(errorData.message);  // Afficher le message d'erreur
+        alert(errorData.message);
       }
     } catch (error) {
       console.error("Erreur lors de l'envoi du formulaire :", error);
     }
   };
 
-  // Gérer la saisie dans le champ de téléphone
-  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedPhoneNumber = formatPhoneNumber(e.target.value);
-    setPhoneNumber(formattedPhoneNumber);
-    form.setValue("telephone", formattedPhoneNumber); // Mettre à jour la valeur du champ de téléphone dans le formulaire
-  };
-
   return (
     <Form {...form}>
-      <div className="rounded-lg bg-white max-w-[100vw] overflow-hidden">
-        <div className="flex flex-col gap-6 lg:flex-row ">
-          {/* Formulaire d'inscription */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="rounded-lg bg-white max-w-[100vw] overflow-hidden">
+        <div className="flex flex-col gap-6 lg:flex-row">
           <div className="w-full lg:w-1/2 bg-white rounded-lg p-4 md:p-6">
             <h2 className="text-2xl md:text-5xl text-center font-bold mb-4 md:mb-6 text-green">
               Créer ton compte client
             </h2>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 md:space-y-4"
-            >
+            <div className="space-y-4 md:space-y-4">
               <div className="flex flex-col md:flex-row md:space-x-4">
                 {/* Nom */}
                 <FormField
@@ -116,11 +109,28 @@ const SignUpForm = () => {
                   render={({ field }) => (
                     <FormItem className="w-full">
                       <FormControl>
-                        <Input
-                          placeholder="Nom"
-                          {...field}
-                          className="bg-lightblue bg-opacity-50 border-none py-4 md:py-6 px-5 md:px-6 text-lg md:text-xl text-green focus-green"
-                        />
+                        <div className="flex items-center bg-lightblue bg-opacity-50 border-none py-2 md:py-3 px-3 md:px-4 rounded-md">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-6 h-6 text-green mr-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                            />
+                          </svg>
+                          <Input
+                            placeholder="Nom"
+                            autoComplete="off"
+                            {...field}
+                            className="bg-transparent border-none text-lg md:text-xl text-green focus:outline-none flex-grow"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage className="text-red" />
                     </FormItem>
@@ -134,36 +144,34 @@ const SignUpForm = () => {
                   render={({ field }) => (
                     <FormItem className="w-full">
                       <FormControl>
-                        <Input
-                          placeholder="Prénom"
-                          {...field}
-                          className="bg-lightblue bg-opacity-50 border-none py-4 md:py-6 px-5 md:px-6 text-lg md:text-xl text-green focus-green"
-                        />
+                        <div className="flex items-center bg-lightblue bg-opacity-50 border-none py-2 md:py-3 px-3 md:px-4 rounded-md">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-6 h-6 text-green mr-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                            />
+                          </svg>
+                          <Input
+                            placeholder="Prénom"
+                            autoComplete="off"
+                            {...field}
+                            className="bg-transparent border-none text-lg md:text-xl text-green focus:outline-none flex-grow"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage className="text-red" />
                     </FormItem>
                   )}
                 />
               </div>
-
-              {/* Téléphone */}
-              <FormField
-                control={form.control}
-                name="telephone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        placeholder="Téléphone"
-                        value={phoneNumber}
-                        onChange={handlePhoneNumberChange}
-                        className="bg-lightblue bg-opacity-50 border-none py-4 md:py-6 px-5 md:px-6 text-lg md:text-xl text-green focus-none"
-                      />
-                    </FormControl>
-                    <FormMessage className="text-red-200" />
-                  </FormItem>
-                )}
-              />
 
               {/* Email */}
               <FormField
@@ -172,11 +180,28 @@ const SignUpForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        placeholder="Email"
-                        {...field}
-                        className="bg-lightblue bg-opacity-50 border-none py-4 md:py-6 px-5 md:px-6 text-lg md:text-xl text-green focus-none"
-                      />
+                      <div className="flex items-center bg-lightblue bg-opacity-50 border-none py-2 md:py-3 px-3 md:px-4 rounded-md">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6 text-green mr-2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                          />
+                        </svg>
+                        <Input
+                          placeholder="Email"
+                          autoComplete="off"
+                          {...field}
+                          className="bg-transparent border-none text-lg md:text-xl text-green focus:outline-none flex-grow"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage className="text-red-200" />
                   </FormItem>
@@ -190,12 +215,29 @@ const SignUpForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Mot de passe"
-                        {...field}
-                        className="bg-lightblue text-green bg-opacity-50 border-none py-4 md:py-6 px-5 md:px-6 text-lg md:text-xl"
-                      />
+                      <div className="flex items-center bg-lightblue bg-opacity-50 border-none py-2 md:py-3 px-3 md:px-4 rounded-md">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6 text-green mr-2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0-2.25 2.25Z"
+                          />
+                        </svg>
+                        <Input
+                          type="password"
+                          placeholder="Mot de passe"
+                          autoComplete="off"
+                          {...field}
+                          className="bg-transparent border-none text-lg md:text-xl text-green focus:outline-none flex-grow"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage className="text-red-200" />
                   </FormItem>
@@ -209,12 +251,29 @@ const SignUpForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        placeholder="Confirmez votre mot de passe"
-                        type="password"
-                        {...field}
-                        className="bg-lightblue text-green bg-opacity-50 border-none py-4 md:py-6 px-5 md:px-6 text-lg md:text-xl"
-                      />
+                      <div className="flex items-center bg-lightblue bg-opacity-50 border-none py-2 md:py-3 px-3 md:px-4 rounded-md">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6 text-green mr-2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0-2.25 2.25Z"
+                          />
+                        </svg>
+                        <Input
+                          type="password"
+                          placeholder="Confirmez votre mot de passe"
+                          autoComplete="off"
+                          {...field}
+                          className="bg-transparent border-none text-lg md:text-xl text-green focus:outline-none flex-grow"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage className="text-red-200" />
                   </FormItem>
@@ -227,7 +286,7 @@ const SignUpForm = () => {
               >
                 Valider
               </Button>
-            </form>
+            </div>
           </div>
 
           {/* Section Connexion */}
@@ -246,7 +305,7 @@ const SignUpForm = () => {
             </Link>
           </div>
         </div>
-      </div>
+      </form>
     </Form>
   );
 };

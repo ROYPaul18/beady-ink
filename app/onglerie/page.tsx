@@ -15,8 +15,8 @@ export default async function PrestationsPage() {
   const prestations = await getPrestations();
 
   return (
-    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-60">
-      <h1 className="text-green text-center text-4xl md:text-6xl mb-10">
+    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-40">
+      <h1 className="text-green text-center text-4xl md:text-6xl mb-2">
         Nos Prestations
       </h1>
       <PrestationList prestations={prestations} />
