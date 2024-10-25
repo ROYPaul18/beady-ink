@@ -1,11 +1,15 @@
-// app/api/prestation/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+// Utiliser `RouteHandlerContext` pour typer correctement le deuxième argument
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   const { id } = params;
 
   try {
+    // Convertir l'ID en nombre pour la recherche
     const prestation = await db.prestation.findUnique({
       where: { id: parseInt(id, 10) },
       include: { images: true, service: true },
