@@ -33,7 +33,7 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <h1 className="text-4xl md:text-6xl text-green-600 text-center font-bold mb-8">
-        Tableau de bord
+        Tableau de bords
       </h1>
 
       <div className="max-w-5xl mx-auto">
