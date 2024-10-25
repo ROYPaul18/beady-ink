@@ -1,11 +1,12 @@
-// app/reservation/flashtattoo/page.tsx
 import { db } from '@/lib/db';
 import FlashTattooGallery from '../../ui/tattoo/FlashTattooGallery';
 import { Prestation } from '@/lib/types';
 
-async function getFlashTattoos(): Promise<Prestation[]> {
+export default async function FlashTattooReservation() {
+  let prestations: Prestation[] = [];
+
   try {
-    return await db.prestation.findMany({
+    prestations = await db.prestation.findMany({
       where: {
         service: {
           type: 'FLASH_TATTOO',
@@ -17,12 +18,7 @@ async function getFlashTattoos(): Promise<Prestation[]> {
     });
   } catch (error) {
     console.error("Erreur lors de la récupération des prestations:", error);
-    return []; // Retourner un tableau vide en cas d'erreur
   }
-}
-
-export default async function FlashTattooReservation() {
-  const prestations = await getFlashTattoos();
 
   return (
     <div className="bg-[url('/img/13.png')] min-h-screen bg-cover px-4 py-10">

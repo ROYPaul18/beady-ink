@@ -1,9 +1,10 @@
-// app/reservation/onglerie/page.tsx
 import { db } from '@/lib/db';
+import ReservationPrestationList from '@/app/ui/reservation/ReservationPrestationList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ServiceType } from '@prisma/client';
 import { PrestationWithImages } from '@/lib/types';
+import OnglerieRecap from '@/app/ui/reservation/OnglerieRecap';
 import ClientOnglerieReservation from '@/app/ui/reservation/ClientOnglerieReservation';
 
 async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
@@ -13,15 +14,26 @@ async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
         type: ServiceType.ONGLERIE,
       },
     },
-    include: {
-      images: true,
-      service: true, 
+    include: {  
+      images: {
+        select: {
+          id: true,
+          url: true,
+          createdAt: true,
+          prestationId: true,
+        }
+      },
+      service: {
+        select: {
+          id: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
     },
   });
 }
-
-
-
 
 export default async function OnglerieReservationPage() {
   const session = await getServerSession(authOptions);

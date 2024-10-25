@@ -38,7 +38,6 @@ export type PrestationFormData = {
 // lib/types.ts
 export type Service = {
   id: number;
-  name: string; // Assurez-vous que le champ 'name' est bien présent
   createdAt: Date;
   updatedAt: Date;
   type: ServiceType;
@@ -51,17 +50,16 @@ export interface PrestationWithImages {
   duration: number;
   description: string;
   price: number;
-  createdAt: Date;
-  updatedAt: Date;
-  images: {
-    url: string;
-    id: number;
-    createdAt: Date;
-    prestationId: number;
+  serviceId: number;
+  images: { 
+    url: string; 
+    id: number; 
+    createdAt: Date; 
+    prestationId: number; 
   }[];
   service: {
     id: number;
-    type: ServiceType; // Gardez le type ici
+    type: ServiceType;     // Changé 'name' en 'type' pour correspondre au schéma
     createdAt: Date;
     updatedAt: Date;
   };
