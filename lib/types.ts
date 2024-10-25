@@ -21,11 +21,6 @@ interface Image {
 }
 
 // Type pour une prestation avec ses images et son service associé
-export interface PrestationWithImages extends Prestation {
-  service: {
-    type: ServiceType;
-  };
-}
 
 // Type pour les données de création de prestation
 export type CreatePrestationData = Omit<Prestation, 'id'>; // Exclut l'ID lors de la création
@@ -40,14 +35,28 @@ export type PrestationFormData = {
 };
 
 // Type pour un service
-export interface Service {
+// lib/types.ts
+export type Service = {
   id: number;
-  name: string;
-  type: ServiceType; // Utilisation de l'enum pour garantir les types
-  prestations?: Prestation[]; // Un service peut avoir plusieurs prestations
+  name: string; // Assurez-vous que le champ 'name' est bien présent
   createdAt: Date;
   updatedAt: Date;
-}
+  type: ServiceType;
+};
+
+export type PrestationWithImages = {
+  id: number;
+  name: string;
+  duration: number;
+  description: string;
+  price: number;
+  serviceId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  images: { url: string; id: number; createdAt: Date; prestationId: number }[]; // Assurez-vous que cela correspond à votre structure
+  service: { id: number; name: string; createdAt: Date; updatedAt: Date; type: ServiceType }; // Assurez-vous d'inclure toutes les propriétés
+};
+
 
 // Type pour les données de création d'un service
 export type CreateServiceData = Omit<Service, 'id' | 'createdAt' | 'updatedAt' | 'prestations'>;
@@ -57,3 +66,4 @@ export type CreateServiceData = Omit<Service, 'id' | 'createdAt' | 'updatedAt' |
 export type ServiceFormData = {
   type: string; // On utilise string car les inputs HTML renvoient des strings
 };
+
