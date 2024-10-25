@@ -1,13 +1,12 @@
-// app/reservation/onglerie/page.tsx
-
 import { db } from '@/lib/db';
-import ReservationPrestationList from '@/app/ui/reservation/ReservationPrestationList';
+import dynamic from 'next/dynamic'; // Import dynamique pour le composant
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ServiceType } from '@prisma/client';
 import { PrestationWithImages } from '@/lib/types';
-import OnglerieRecap from '@/app/ui/reservation/OnglerieRecap';
-import ClientOnglerieReservation from '@/app/ui/reservation/ClientOnglerieReservation';
+
+// Charger le composant ClientOnglerieReservation dynamiquement
+const ClientOnglerieReservation = dynamic(() => import('@/app/ui/reservation/ClientOnglerieReservation'), { ssr: false });
 
 async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
   return db.prestation.findMany({
@@ -20,6 +19,7 @@ async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
       images: true,
       service: true,
     },
+    take: 10, // Limitez le nombre de résultats pour éviter de surcharger
   });
 }
 
