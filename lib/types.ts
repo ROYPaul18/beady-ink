@@ -44,18 +44,29 @@ export type Service = {
   type: ServiceType;
 };
 
-export type PrestationWithImages = {
+// lib/types.ts
+export interface PrestationWithImages {
   id: number;
   name: string;
   duration: number;
   description: string;
   price: number;
-  serviceId: number;
   createdAt: Date;
   updatedAt: Date;
-  images: { url: string; id: number; createdAt: Date; prestationId: number }[]; // Assurez-vous que cela correspond à votre structure
-  service: { id: number; name: string; createdAt: Date; updatedAt: Date; type: ServiceType }; // Assurez-vous d'inclure toutes les propriétés
-};
+  images: {
+    url: string;
+    id: number;
+    createdAt: Date;
+    prestationId: number;
+  }[];
+  service: {
+    id: number;
+    type: ServiceType; // Gardez le type ici
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
 
 
 // Type pour les données de création d'un service

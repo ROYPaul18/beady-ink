@@ -15,17 +15,11 @@ async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
     },
     include: {
       images: true,
-      service: {
-        select: { 
-          id: true,
-          createdAt: true,
-          updatedAt: true,
-          type: true,
-        },
-      },
+      service: true, 
     },
-  }) as Promise<PrestationWithImages[]>; // Assert the type explicitly
+  });
 }
+
 
 
 
