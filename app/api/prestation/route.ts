@@ -7,11 +7,22 @@ import cloudinary from '@/lib/cloudinary';
 
 // Schéma de validation pour la prestation
 const prestationSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis'),
-  duration: z.number().min(1, 'La durée doit être positive'),
-  price: z.number().min(0, 'Le prix doit être positif'),
-  description: z.string(),
+  name: z.string().min(1, 'Le nom est requis').optional(),
+  duration: z.preprocess((val) => val === '' ? undefined : val, z.number().min(1, 'La durée doit être positive')).optional(),
+  price: z.preprocess((val) => val === '' ? undefined : val, z.number().min(0, 'Le prix doit être positif')).optional(),
+  description: z.string().optional(),
   serviceType: z.nativeEnum(ServiceType),
+}).refine((data) => {
+  if (data.serviceType === ServiceType.ONGLERIE) {
+    return data.name && data.duration !== undefined && data.description && data.price !== undefined;
+  }
+  if (data.serviceType === ServiceType.FLASH_TATTOO) {
+    return data.price !== undefined;
+  }
+  // Pour TATOUAGE, nous n'avons besoin que des images, donc aucune autre condition.
+  return true;
+}, {
+  message: 'Certains champs requis sont manquants pour ce type de prestation.',
 });
 
 // Fonction pour convertir un fichier en ReadableStream pour Cloudinary
@@ -58,8 +69,7 @@ export async function POST(req: Request) {
 
     // Lire le contenu de la requête en tant que FormData
     const formData = await req.formData();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fields: Record<string, any> = {};
+    const fields: Record<string, string | File> = {}; // Spécification du type
     const images: Buffer[] = [];
 
     // Parcourir les champs de FormData
@@ -69,16 +79,16 @@ export async function POST(req: Request) {
         const buffer = Buffer.from(arrayBuffer);
         images.push(buffer);
       } else {
-        fields[key] = value;
+        fields[key] = value as string; // Cast en tant que string
       }
     }
 
-    // Valider les données avec Zod
+    // Valider les données avec Zod en fonction du type de service
     const prestationData = prestationSchema.parse({
-      name: fields.name,
-      duration: Number(fields.duration),
-      price: Number(fields.price),
-      description: fields.description,
+      name: fields.name || undefined,
+      duration: fields.duration ? Number(fields.duration) : undefined,
+      price: fields.price ? Number(fields.price) : undefined,
+      description: fields.description || undefined,
       serviceType: fields.serviceType as ServiceType,
     });
 
@@ -101,10 +111,10 @@ export async function POST(req: Request) {
     // Créer la prestation dans la base de données avec les images associées
     const newPrestation = await db.prestation.create({
       data: {
-        name: prestationData.name,
-        duration: prestationData.duration,
-        price: prestationData.price,
-        description: prestationData.description,
+        name: prestationData.name || '', // Nom facultatif pour certains types
+        duration: prestationData.duration || 0, // Durée facultative
+        price: prestationData.price || 0, // Prix facultatif
+        description: prestationData.description || '', // Description facultative
         serviceId: service.id,
         images: {
           create: imageUrls.map((url) => ({ url })),
@@ -112,20 +122,18 @@ export async function POST(req: Request) {
       },
       include: { images: true },
     });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return NextResponse.json({ prestation: newPrestation, message: 'Prestation ajoutée avec succès' }, { status: 201 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
 
+    return NextResponse.json({ prestation: newPrestation, message: 'Prestation ajoutée avec succès' }, { status: 201 });
+  } catch (error) {
     console.error('Erreur lors de la création de la prestation:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: 'Validation des données échouée', errors: error.errors }, { status: 400 });
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return NextResponse.json({ message: 'Erreur lors de la création de la prestation' }, { status: 500 });
   }
 }
+
 export async function DELETE(req: Request) {
   try {
     const url = new URL(req.url);
@@ -136,14 +144,12 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ message: 'ID manquant' }, { status: 400 });
     }
 
-    // Convertir l'ID en nombre (si nécessaire, selon votre modèle)
+    // Convertir l'ID en nombre
     const prestationId = parseInt(id, 10);
-
     if (isNaN(prestationId)) {
       return NextResponse.json({ message: 'ID invalide' }, { status: 400 });
     }
 
-    // Récupérer la prestation et ses images avant de la supprimer
     const prestation = await db.prestation.findUnique({
       where: { id: prestationId },
       include: { images: true },
@@ -153,7 +159,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ message: 'Prestation introuvable' }, { status: 404 });
     }
 
-    // Supprimer les images associées de Cloudinary
+    // Supprimer les images de Cloudinary
     for (const image of prestation.images) {
       const publicId = extractPublicIdFromUrl(image.url);
       if (publicId) {
@@ -178,3 +184,18 @@ const extractPublicIdFromUrl = (url: string): string | null => {
   const matches = url.match(/\/(?:v\d+\/)?([^/]+)\.\w+$/);
   return matches ? matches[1] : null;
 };
+
+export async function GET() {
+  try {
+    const prestations = await db.prestation.findMany({
+      include: {
+        images: true,
+        service: true,
+      },
+    });
+    return NextResponse.json(prestations);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des prestations:", error);
+    return NextResponse.json({ error: "Erreur lors de la récupération des prestations" }, { status: 500 });
+  }
+}

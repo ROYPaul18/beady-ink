@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "./ui/header";
 import Footer from "./ui/footer";
 import { Providers } from "./providers";
+import { ReservationProvider } from '@/app/context/ReservationContext';
+
 
 export const metadata: Metadata = {
   title: "Beaudy Ink",
@@ -19,9 +21,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-cinzel antialiased" suppressHydrationWarning={true}>
         <Providers>
-          <Header />
-          {children}
-          <Footer />
+          <ReservationProvider>
+            <Header />
+            {children}
+            <Footer />
+          </ReservationProvider>
         </Providers>
       </body>
     </html>

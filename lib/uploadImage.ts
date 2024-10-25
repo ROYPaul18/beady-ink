@@ -67,7 +67,7 @@ export const uploadImageToCloudinary = async (file: File, folder: string): Promi
         folder,
         transformation: [
           { width: 800, height: 800, crop: 'limit' }, // Limite la taille de l'image à 800x800 pixels
-          { quality: 'auto:eco', fetch_format: 'auto' }, // Optimisation automatique de la qualité
+          { quality: 'auto:good', fetch_format: 'auto' }, // Optimisation automatique de la qualité
         ],
       },
       (error, result) => {

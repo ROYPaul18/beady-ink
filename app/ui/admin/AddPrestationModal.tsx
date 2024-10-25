@@ -1,9 +1,11 @@
-"use client";
+// AddPrestationModal.tsx
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/app/ui/button";
-import { PrestationFormData } from "@/lib/types";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/app/ui/button';
+import { PrestationFormData } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import { FormProvider, useForm } from 'react-hook-form';
 import {
   Form,
   FormField,
@@ -11,15 +13,18 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "../form";
-import { Input } from "../input";
-import { Textarea } from "../textarea";
-import { useForm } from "react-hook-form";
-import { Dialog } from "@headlessui/react";
-import { ServiceType } from "@prisma/client";
-import Image from "next/image";
+} from '../form';
+import { Input } from '../input';
+import { Textarea } from '../textarea';
+import { Dialog } from '@headlessui/react';
+import { ServiceType } from '@prisma/client';
+import Image from 'next/image';
 
-const AddPrestationModal: React.FC = () => {
+interface AddPrestationModalProps {
+  serviceType: ServiceType;
+}
+
+const AddPrestationModal: React.FC<AddPrestationModalProps> = ({ serviceType }) => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -27,218 +32,166 @@ const AddPrestationModal: React.FC = () => {
 
   const form = useForm<PrestationFormData>({
     defaultValues: {
-      name: "",
-      duration: "",
-      description: "",
-      price: "",
-      serviceType: ServiceType.ONGLERIE,
+      name: '',
+      duration: '',
+      description: '',
+      price: '',
+      serviceType: serviceType,
     },
   });
 
   const validateImages = (files: File[]) => {
     const maxFileSizeMB = 5;
-    const validFiles = files.filter((file) => {
-      const isValidType = file.type.startsWith("image/");
-      const isValidSize = file.size / 1024 / 1024 < maxFileSizeMB;
-      return isValidType && isValidSize;
-    });
-    return validFiles;
+    return files.filter(
+      (file) => file.type.startsWith('image/') && file.size / 1024 / 1024 < maxFileSizeMB
+    );
   };
 
   const handleSubmit = async (data: PrestationFormData) => {
-    try {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("duration", data.duration.toString()); // Convertir en string
-      formData.append("description", data.description);
-      formData.append("price", data.price.toString()); // Convertir en string
-      formData.append("serviceType", data.serviceType);
+    data.serviceType = serviceType;
+    const formData = new FormData();
+    formData.append('serviceType', serviceType);
 
-      const validFiles = validateImages(imageFiles);
-      if (validFiles.length === 0) {
-        alert("Veuillez sélectionner au moins une image valide.");
-        return;
-      }
+    if (serviceType === ServiceType.ONGLERIE || serviceType === ServiceType.FLASH_TATTOO) {
+      formData.append('price', data.price.toString());
+    }
 
-      validFiles.forEach((file) => {
-        formData.append("image", file); // Assurez-vous que le champ s'appelle "image"
-      });
+    if (serviceType === ServiceType.ONGLERIE) {
+      formData.append('name', data.name);
+      formData.append('duration', data.duration.toString());
+      formData.append('description', data.description);
+    }
 
-      const response = await fetch("/api/prestation", {
-        method: "POST",
-        body: formData,
-      });
+    const validFiles = validateImages(imageFiles);
+    validFiles.forEach((file) => {
+      formData.append('image', file);
+    });
 
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const result = await response.json();
+    const response = await fetch('/api/prestation', {
+      method: 'POST',
+      body: formData,
+    });
 
-        if (response.ok) {
-          alert("Prestation ajoutée avec succès !");
-          handleClose();
-          router.refresh();
-          form.reset(); // Réinitialiser le formulaire après succès
-        } else {
-          alert(`Erreur: ${result.message}`);
-        }
-      } else {
-        const text = await response.text();
-        alert("Erreur lors de la création de la prestation.");
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert("Une erreur est survenue lors de l'ajout de la prestation.");
+    if (response.ok) {
+      alert('Prestation ajoutée avec succès !');
+      setIsOpen(false);
+      router.refresh();
+      form.reset();
+    } else {
+      alert('Erreur lors de la création de la prestation.');
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = validateImages(files);
-
-    if (validFiles.length !== files.length) {
-      alert("Certains fichiers ne sont pas valides (format ou taille).");
-    }
-
     setImageFiles(validFiles);
-    const previews = validFiles.map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
+    setImagePreviews(validFiles.map((file) => URL.createObjectURL(file)));
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-    form.reset();
-    setImagePreviews([]);
-    setImageFiles([]);
+  const renderFormFields = () => {
+    switch (serviceType) {
+      case ServiceType.ONGLERIE:
+        return (
+          <>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom</FormLabel>
+                  <FormControl>
+                    <Input {...field} required />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Durée (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="1" {...field} required />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} required />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prix (€)</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" min="0" {...field} required />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        );
+      case ServiceType.FLASH_TATTOO:
+        return (
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prix (€)</FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.01" min="0" {...field} required />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+      case ServiceType.TATOUAGE:
+        return null;
+      default:
+        return null;
+    }
   };
-
-  useEffect(() => {
-    // Nettoyer les URLs des objets lorsque le composant est démonté ou les images changent
-    return () => {
-      imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
-    };
-  }, [imagePreviews]);
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)}>Ajouter une prestation</Button>
-
-      <Dialog open={isOpen} onClose={handleClose}>
+      <Button onClick={() => setIsOpen(true)}>
+        Ajouter une prestation - {serviceType}
+      </Button>
+      <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
         <div className="fixed inset-0 bg-black opacity-30" />
         <div className="fixed inset-0 flex items-center justify-center">
-          <Dialog.Panel className="bg-white p-6 rounded-lg shadow-md max-w-md w-full relative z-50">
-            <Form {...form}>
+          <Dialog.Panel className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
+            <FormProvider {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                {/* Section de téléchargement d'images */}
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="flex space-x-2 flex-wrap justify-center">
-                    {imagePreviews.length > 0 ? (
-                      imagePreviews.map((preview, index) => (
-                        <Image
-                          key={index}
-                          src={preview}
-                          alt={`Image ${index + 1}`}
-                          width={100}
-                          height={100}
-                          className="object-cover rounded-md"
-                        />
-                      ))
-                    ) : (
-                      <p className="text-gray-400">Aucune image sélectionnée</p>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="text-sm text-gray-500"
-                    multiple
-                  />
+                <div className="flex space-x-2">
+                  {imagePreviews.map((src, index) => (
+                    <Image key={index} src={src} alt="" width={100} height={100} className="rounded-md" />
+                  ))}
+                  <input type="file" multiple accept="image/*" onChange={handleImageChange} />
                 </div>
-
-                {/* Champs du formulaire */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom</FormLabel>
-                      <FormControl>
-                        <Input {...field} required />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durée</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} required />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} required />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prix</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" min="0" {...field} required />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="serviceType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type de Service</FormLabel>
-                      <FormControl>
-                        <select {...field} className="block w-full p-2 border rounded-md">
-                          <option value={ServiceType.ONGLERIE}>Onglerie</option>
-                          <option value={ServiceType.TATOUAGE}>Tatouage</option>
-                          {/* Ajoutez d'autres options selon vos besoins */}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Boutons d'action */}
-                <div className="flex justify-end space-x-2">
-                  <Button type="submit">Ajouter la prestation</Button>
-                  <Button onClick={handleClose} type="button" variant="outline">
-                    Annuler
-                  </Button>
-                </div>
+                {renderFormFields()}
+                <Button type="submit">Ajouter</Button>
               </form>
-            </Form>
+            </FormProvider>
           </Dialog.Panel>
         </div>
       </Dialog>

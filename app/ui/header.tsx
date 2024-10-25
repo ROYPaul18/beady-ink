@@ -2,21 +2,21 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react"; 
-import { usePathname } from "next/navigation";  // Utiliser usePathname pour récupérer la route actuelle
+import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation"; // Utiliser usePathname pour récupérer la route actuelle
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { data: session, status } = useSession(); 
-  const pathname = usePathname();  // Obtenez la route actuelle avec usePathname
+  const { data: session, status } = useSession();
+  const pathname = usePathname(); // Obtenez la route actuelle avec usePathname
 
   // Définir dynamiquement l'image de fond en fonction de la route
   const getBackgroundImage = () => {
-    if (pathname === '/tatouage' || pathname === '/tattoo') {
-      return '/img/bg-fleur.jpg';
+    if (pathname === "/tatouage" || pathname === "/tattoo") {
+      return "/img/bg-fleur.jpg";
     } else {
-      return '/img/bg-feuille.jpg';  // Image par défaut
+      return "/img/bg-feuille.jpg"; // Image par défaut
     }
   };
 
@@ -39,23 +39,25 @@ const Header = () => {
   // Désactiver le scroll si le menu est ouvert
   useEffect(() => {
     if (menuOpen) {
-      document.body.style.overflow = "hidden";  // Désactiver le scroll
+      document.body.style.overflow = "hidden"; // Désactiver le scroll
     } else {
-      document.body.style.overflow = "auto";  // Réactiver le scroll
+      document.body.style.overflow = "auto"; // Réactiver le scroll
     }
 
     return () => {
-      document.body.style.overflow = "auto";  // Toujours réactiver le scroll quand le composant est démonté
+      document.body.style.overflow = "auto"; // Toujours réactiver le scroll quand le composant est démonté
     };
   }, [menuOpen]);
 
-  const isAuthenticated = status === 'authenticated';
-  const isAdmin = session?.user?.role === 'ADMIN';
+  const isAuthenticated = status === "authenticated";
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
-    <header 
+    <header
       style={{ backgroundImage: `url(${getBackgroundImage()})` }} // Utilisation du style inline pour définir l'image de fond
-      className={`relative bg-cover bg-center ${menuOpen ? "h-screen" : "h-auto"}`}
+      className={`relative bg-cover bg-center ${
+        menuOpen ? "h-screen" : "h-auto"
+      }`}
     >
       <div className="flex justify-between items-center p-4 relative z-50">
         <h1 className="text-3xl lg:text-6xl font-bold md:text-center md:flex-grow text-white">
@@ -66,13 +68,13 @@ const Header = () => {
           className="block lg:hidden text-3xl focus:outline-none text-white"
           onClick={toggleMenu}
         >
-          {menuOpen ? '✕' : '☰'}
+          {menuOpen ? "✕" : "☰"}
         </button>
       </div>
 
       <nav
         className={`${
-          menuOpen 
+          menuOpen
             ? "fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-cover bg-center pt-20"
             : "hidden"
         } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0`}
@@ -80,16 +82,24 @@ const Header = () => {
         {/* Liens de navigation */}
         <div className="flex flex-col items-center lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:ml-20 lg:mr-20">
           <h1 className="text-2xl p-4 text-center text-white">
-            <Link href="/" onClick={closeMenu}>Accueil</Link>
+            <Link href="/" onClick={closeMenu}>
+              Accueil
+            </Link>
           </h1>
           <h1 className="text-2xl p-4 text-center text-white">
-            <Link href="/onglerie" onClick={closeMenu}>Onglerie</Link>
+            <Link href="/onglerie" onClick={closeMenu}>
+              Onglerie
+            </Link>
           </h1>
           <h1 className="text-2xl p-4 text-center text-white">
-            <Link href="/tatouage" onClick={closeMenu}>Tatouage</Link>
+            <Link href="/tatouage" onClick={closeMenu}>
+              Tatouage
+            </Link>
           </h1>
           <h1 className="text-2xl p-4 text-center text-white">
-            <Link href="/tattoo" onClick={closeMenu}>Flash Tattoo</Link>
+            <Link href="/tattoo" onClick={closeMenu}>
+              Flash Tattoo
+            </Link>
           </h1>
         </div>
 
@@ -119,7 +129,14 @@ const Header = () => {
                 <ul className="flex flex-col text-center space-y-4">
                   {!isAuthenticated && (
                     <li>
-                      <Link href="/sign-up" onClick={() => {closeDropdown(); closeMenu();}} className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all">
+                      <Link
+                        href="/sign-up"
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
+                        className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all"
+                      >
                         Se créer un compte
                       </Link>
                     </li>
@@ -133,22 +150,22 @@ const Header = () => {
                           e.preventDefault();
                           signOut({
                             redirect: true,
-                            callbackUrl: '/'
+                            callbackUrl: "/",
                           });
                           closeDropdown();
-                          closeMenu();  // Close menu on sign out
+                          closeMenu(); // Close menu on sign out
                         }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
                       >
                         Se déconnecter
                       </Link>
                     ) : (
-                      <Link 
-                        href="/sign-in" 
+                      <Link
+                        href="/sign-in"
                         onClick={() => {
                           closeDropdown();
-                          closeMenu();  // Close menu when navigating to sign-in
-                        }} 
+                          closeMenu(); // Close menu when navigating to sign-in
+                        }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
                       >
                         Se connecter
@@ -158,7 +175,14 @@ const Header = () => {
 
                   {isAdmin && (
                     <li>
-                      <Link href="/admin" onClick={() => {closeDropdown(); closeMenu();}} className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all">
+                      <Link
+                        href="/admin"
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
+                      >
                         Mon dashboard
                       </Link>
                     </li>
@@ -166,7 +190,14 @@ const Header = () => {
 
                   {isAuthenticated && (
                     <li>
-                      <Link href="/profile" onClick={() => {closeDropdown(); closeMenu();}} className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all">
+                      <Link
+                        href="/profile"
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
+                      >
                         Mon profil & réservations
                       </Link>
                     </li>
@@ -177,7 +208,12 @@ const Header = () => {
           </div>
 
           <button className="text-lg font-bold bg-white text-green rounded-sm px-4 py-1">
-            Réserver maintenant
+            <Link
+              href="/reservation"
+              className="block w-full h-full text-center"
+            >
+              Réserver maintenant
+            </Link>
           </button>
         </div>
       </nav>

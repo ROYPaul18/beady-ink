@@ -1,25 +1,35 @@
-import { db } from "@/lib/db";
-import PrestationList from "../ui/onglerie/PrestationList";
+// app/onglerie/page.tsx
+import PrestationList from '@/app/ui/onglerie/PrestationList';
+import { db } from '@/lib/db';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
-// Fonction pour récupérer les prestations depuis la base de données
-async function getPrestations() {
-  return db.prestation.findMany({
+async function fetchOngleriePrestations() {
+  return await db.prestation.findMany({
+    where: {
+      service: {
+        type: 'ONGLERIE',
+      },
+    },
     include: {
-      images: true, // Inclure les images associées aux prestations
-      service: true, // Inclure le service associé pour afficher son type si nécessaire
+      images: true,
+      service: true,
     },
   });
 }
 
-export default async function PrestationsPage() {
-  const prestations = await getPrestations();
+export default async function OngleriePage() {
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = !!session; // Vérifie si l'utilisateur est connecté
+
+  const prestations = await fetchOngleriePrestations();
 
   return (
-    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-40">
-      <h1 className="text-green text-center text-4xl md:text-6xl mb-2">
-        Nos Prestations
+    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-60">
+      <h1 className="text-green  text-center text-4xl md:text-6xl mb-10">
+        Prestations d'Onglerie
       </h1>
-      <PrestationList prestations={prestations} />
+      <PrestationList prestations={prestations} isAuthenticated={isAuthenticated} />
     </div>
   );
 }

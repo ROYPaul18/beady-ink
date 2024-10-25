@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "migrate:deploy": "prisma migrate deploy"
@@ -37,6 +37,7 @@
     "pg": "^8.13.0",
     "raw-body": "^3.0.0",
     "react": "^18.3.1",
+    "react-calendar": "^5.1.0",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
     "react-input-mask": "^2.0.4",

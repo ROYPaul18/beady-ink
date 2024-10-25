@@ -99,14 +99,14 @@ const AddServiceModal: React.FC = () => {
                 <div className="flex space-x-2">
                   <Button
                     type="submit"
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
+                    className="bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
                   >
                     Ajouter le service
                   </Button>
                   <Button
                     onClick={() => setIsOpen(false)}
                     type="button"
-                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200"
+                    className="bg-red text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200"
                   >
                     Annuler
                   </Button>
