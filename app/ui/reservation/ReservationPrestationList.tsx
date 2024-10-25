@@ -1,7 +1,7 @@
 'use client';
 
 import { useReservation } from '@/app/context/ReservationContext';
-import { PrestationWithImages } from '@/lib/types';
+import { PrestationWithImages, Prestation } from '@/lib/types';
 import Image from 'next/image';
 
 interface ReservationPrestationListProps {
@@ -21,7 +21,17 @@ const ReservationPrestationList: React.FC<ReservationPrestationListProps> = ({
     );
 
     if (!isAlreadySelected) {
-      setPrestationsComplementaires([...prestationsComplementaires, prestation]);
+      const simplifiedPrestation: Prestation = {
+        id: prestation.id,
+        name: prestation.name,
+        duration: prestation.duration,
+        description: prestation.description,
+        price: prestation.price,
+        serviceId: prestation.service.id, // Assurez-vous d'accéder à l'ID du service
+        images: prestation.images, // Inclure les images ici
+      };
+
+      setPrestationsComplementaires([...prestationsComplementaires, simplifiedPrestation]);
     }
   };
 
