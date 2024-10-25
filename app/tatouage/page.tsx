@@ -1,7 +1,7 @@
+// app/reservation/tatouage/page.tsx
 import { db } from "@/lib/db";
-import PrestationList from "../ui/tatouage/PrestationList";
-import { Prestation } from "@/lib/types";
 import TatouageGallery from "../ui/tatouage/TatouageGallery";
+import { Prestation } from "@/lib/types";
 
 // Fonction pour récupérer les prestations de tatouage
 async function getTatouages(): Promise<Prestation[]> {
@@ -38,4 +38,12 @@ export default async function TatouagePage() {
       <TatouageGallery prestations={tatouages} />
     </div>
   );
+}
+
+
+export async function generateStaticParams() {
+  const tatouages = await getTatouages();
+  return tatouages.map(tatouage => ({
+    params: { id: tatouage.id.toString() },
+  }));
 }

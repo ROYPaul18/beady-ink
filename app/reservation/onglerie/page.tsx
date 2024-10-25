@@ -1,10 +1,8 @@
 import { db } from '@/lib/db';
-import ReservationPrestationList from '@/app/ui/reservation/ReservationPrestationList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { ServiceType } from '@prisma/client';
 import { PrestationWithImages } from '@/lib/types';
-import OnglerieRecap from '@/app/ui/reservation/OnglerieRecap';
+import { ServiceType } from "@prisma/client";
 import ClientOnglerieReservation from '@/app/ui/reservation/ClientOnglerieReservation';
 
 async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
@@ -14,25 +12,12 @@ async function getOngleriePrestations(): Promise<PrestationWithImages[]> {
         type: ServiceType.ONGLERIE,
       },
     },
-    include: {  
-      images: {
-        select: {
-          id: true,
-          url: true,
-          createdAt: true,
-          prestationId: true,
-        }
-      },
-      service: {
-        select: {
-          id: true,
-          type: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
+    include: {
+      images: true, // Si vous n'avez pas besoin de toutes les images, pensez à ajuster
+      service: true,
     },
-  });
+    take: 10, // Limite le nombre de résultats
+  }) as Promise<PrestationWithImages[]>;
 }
 
 export default async function OnglerieReservationPage() {
@@ -45,7 +30,6 @@ export default async function OnglerieReservationPage() {
       <h1 className="text-center text-green text-4xl md:text-5xl lg:text-6xl font-bold mb-10">
         Choisissez votre prestation d'onglerie
       </h1>
-
       <ClientOnglerieReservation
         prestations={prestations}
         isAuthenticated={isAuthenticated}

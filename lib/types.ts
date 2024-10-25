@@ -59,7 +59,7 @@ export interface PrestationWithImages {
   }[];
   service: {
     id: number;
-    type: ServiceType;     // Changé 'name' en 'type' pour correspondre au schéma
+    type: ServiceType;    
     createdAt: Date;
     updatedAt: Date;
   };

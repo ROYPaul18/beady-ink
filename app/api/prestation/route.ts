@@ -19,8 +19,7 @@ const prestationSchema = z.object({
   if (data.serviceType === ServiceType.FLASH_TATTOO) {
     return data.price !== undefined;
   }
-  // Pour TATOUAGE, nous n'avons besoin que des images, donc aucune autre condition.
-  return true;
+  return true; // Aucune condition pour TATOUAGE
 }, {
   message: 'Certains champs requis sont manquants pour ce type de prestation.',
 });
@@ -69,7 +68,7 @@ export async function POST(req: Request) {
 
     // Lire le contenu de la requête en tant que FormData
     const formData = await req.formData();
-    const fields: Record<string, string | File> = {}; // Spécification du type
+    const fields: Record<string, string | File> = {};
     const images: Buffer[] = [];
 
     // Parcourir les champs de FormData
