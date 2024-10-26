@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { db } from '@/lib/db';
 import FlashTattooGallery from '../ui/tattoo/FlashTattooGallery';
 import { Prestation } from '@/lib/types';

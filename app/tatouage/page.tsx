@@ -1,4 +1,6 @@
 // app/reservation/tatouage/page.tsx
+export const dynamic = 'force-dynamic';
+
 import { db } from "@/lib/db";
 import TatouageGallery from "../ui/tatouage/TatouageGallery";
 import { Prestation } from "@/lib/types";
