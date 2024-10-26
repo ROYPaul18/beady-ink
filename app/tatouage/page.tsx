@@ -13,6 +13,7 @@ async function getTatouages(): Promise<Prestation[]> {
     },
     include: {
       images: true,
+      service: true,
     },
   });
 }

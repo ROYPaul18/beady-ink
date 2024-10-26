@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import FlashTattooGallery from '../ui/tattoo/FlashTattooGallery';
 import { Prestation } from '@/lib/types';
 
-// Fonction pour récupérer les prestations de flash tattoos
+// Function to fetch flash tattoo prestations
 async function getFlashTattoos(): Promise<Prestation[]> {
   return db.prestation.findMany({
     where: {
@@ -12,9 +12,11 @@ async function getFlashTattoos(): Promise<Prestation[]> {
     },
     include: {
       images: true,
+      service: true,
     },
   });
 }
+
 
 // Composant pour la page des flash tattoos
 export default async function FlashTattooPage() {

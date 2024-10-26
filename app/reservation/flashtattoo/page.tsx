@@ -14,6 +14,7 @@ export default async function FlashTattooReservation() {
       },
       include: {
         images: true,
+        service: true,
       },
     });
   } catch (error) {
