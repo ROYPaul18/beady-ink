@@ -1,25 +1,18 @@
 // lib/db.ts
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  db: PrismaClient | undefined;
 };
 
 export const db =
-  globalForPrisma.prisma ??
+  globalForPrisma.db ??
   new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
     log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'error', 'warn']
+        : ['error'],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
-
-export const prisma = db;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.db = db;
