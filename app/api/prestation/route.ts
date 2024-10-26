@@ -184,17 +184,41 @@ const extractPublicIdFromUrl = (url: string): string | null => {
   return matches ? matches[1] : null;
 };
 
-export async function GET() {
+export async function GET(req: Request) {
+  console.log('Début de la fonction GET /api/prestation');
   try {
+    const url = new URL(req.url);
+    const pageParam = url.searchParams.get('page') || '1';
+    const pageSizeParam = url.searchParams.get('pageSize') || '20';
+    const page = parseInt(pageParam, 10);
+    const pageSize = parseInt(pageSizeParam, 10);
+    const skip = (page - 1) * pageSize;
+
+    console.log(`Récupération des prestations - Page : ${page}, Taille de page : ${pageSize}`);
+
     const prestations = await db.prestation.findMany({
+      skip,
+      take: pageSize,
       include: {
-        images: true,
-        service: true,
+        images: {
+          select: {
+            url: true,
+          },
+        },
+        service: {
+          select: {
+            type: true,
+          },
+        },
       },
     });
+
+    console.log(`Nombre de prestations récupérées : ${prestations.length}`);
+
     return NextResponse.json(prestations);
   } catch (error) {
     console.error("Erreur lors de la récupération des prestations:", error);
     return NextResponse.json({ error: "Erreur lors de la récupération des prestations" }, { status: 500 });
   }
 }
+
