@@ -3,8 +3,16 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { db } from "./db";
 import { compare } from "bcrypt";
+import { User } from "next-auth";
+
+interface ExtendedUser extends User {
+  nom?: string;
+  prenom?: string;
+  role?: string;
+}
 
 export const authOptions: NextAuthOptions = {
+  
   adapter: PrismaAdapter(db),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
@@ -60,11 +68,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        const extendedUser = user as ExtendedUser;
         token = {
           ...token,
-          nom: user.nom,
-          prenom: user.prenom,
-          role: user.role,
+          nom: extendedUser.nom,
+          prenom: extendedUser.prenom,
+          role: extendedUser.role,
         };
       }
       return token;

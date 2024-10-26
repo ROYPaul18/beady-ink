@@ -14,8 +14,15 @@ export interface PrestationWithImages extends Prestation {
   service: Service; // Inclure le service pour accéder à son type
 }
 
+// Définir le type de session attendu
+interface Session {
+  user: {
+    role: string;
+  };
+}
+
 export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
+  const session: Session | null = await getServerSession(authOptions);
   if (!session) {
     redirect("/sign-in");
   } else if (session.user.role !== "ADMIN") {
@@ -33,7 +40,7 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <h1 className="text-4xl md:text-6xl text-green-600 text-center font-bold mb-8">
-        Tableau de bords
+        Tableau de bord
       </h1>
 
       <div className="max-w-5xl mx-auto">
@@ -47,7 +54,7 @@ export default async function AdminPage() {
         />
 
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">
-        Galerie Flash tattoo 
+          Galerie Flash tattoo 
         </h2>
         <AddPrestationModal serviceType={ServiceType.FLASH_TATTOO} />
         <PrestationList

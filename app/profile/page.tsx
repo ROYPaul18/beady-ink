@@ -29,26 +29,26 @@ export default async function ProfilePage() {
               <span className="mr-4 text-xl">
                 <i className="fas fa-user"></i> {/* Icône utilisateur */}
               </span>
-              <span>{user?.prenom?.split(' ')[0] || 'Prénom'}</span>
+              <span>{userProfile?.prenom?.split(' ')[0] || 'Prénom'}</span>
             </li>
             <li className="flex items-center bg-gray-200 p-4 rounded-md">
               <span className="mr-4 text-xl">
                 <i className="fas fa-user"></i> {/* Icône utilisateur */}
               </span>
-              <span>{user?.nom?.split(' ')[1] || 'Nom'}</span>
+              <span>{userProfile?.nom?.split(' ')[1] || 'Nom'}</span>
             </li>
             <li className="flex items-center bg-gray-200 p-4 rounded-md">
               <span className="mr-4 text-xl">
                 <i className="fas fa-envelope"></i> {/* Icône email */}
               </span>
-              <span>{user?.email || 'Email'}</span>
+              <span>{userProfile?.email || 'Email'}</span>
             </li>
-            {/* <li className="flex items-center bg-gray-200 p-4 rounded-md">
+            <li className="flex items-center bg-gray-200 p-4 rounded-md">
               <span className="mr-4 text-xl">
                 <i className="fas fa-phone"></i>
               </span>
-              <span>{userProfile?.phone || 'Téléphone non défini'}</span>
-            </li> */}
+              <span>{userProfile?.telephone || 'Téléphone non défini'}</span>
+            </li>
           </ul>
           <div className="mt-6">
             <button className="w-full py-2 px-4 bg-green-600 text-white rounded-md">

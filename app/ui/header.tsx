@@ -3,13 +3,25 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation"; // Utiliser usePathname pour récupérer la route actuelle
+import { usePathname } from "next/navigation";
+
+// Définir une interface pour étendre les propriétés de l'utilisateur
+interface ExtendedUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  id?: number;
+  nom?: string;
+  prenom?: string;
+  role?: "USER" | "ADMIN";
+}
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session, status } = useSession();
-  const pathname = usePathname(); // Obtenez la route actuelle avec usePathname
+  const user = session?.user as ExtendedUser | undefined;
+  const pathname = usePathname();
 
   // Définir dynamiquement l'image de fond en fonction de la route
   const getBackgroundImage = () => {
@@ -50,11 +62,11 @@ const Header = () => {
   }, [menuOpen]);
 
   const isAuthenticated = status === "authenticated";
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isAdmin = user?.role === "ADMIN";
 
   return (
     <header
-      style={{ backgroundImage: `url(${getBackgroundImage()})` }} // Utilisation du style inline pour définir l'image de fond
+      style={{ backgroundImage: `url(${getBackgroundImage()})` }}
       className={`relative bg-cover bg-center ${
         menuOpen ? "h-screen" : "h-auto"
       }`}
@@ -63,7 +75,7 @@ const Header = () => {
         <h1 className="text-3xl lg:text-6xl font-bold md:text-center md:flex-grow text-white">
           Beaudy Ink
         </h1>
-        <p>{session?.user?.nom}</p>
+        <p className="text-white">{user?.nom}</p>
         <button
           className="block lg:hidden text-3xl focus:outline-none text-white"
           onClick={toggleMenu}
@@ -144,27 +156,25 @@ const Header = () => {
 
                   <li>
                     {isAuthenticated ? (
-                      <Link
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
+                      <button
+                        onClick={() => {
                           signOut({
                             redirect: true,
                             callbackUrl: "/",
                           });
                           closeDropdown();
-                          closeMenu(); // Close menu on sign out
+                          closeMenu();
                         }}
-                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all w-full text-center"
                       >
                         Se déconnecter
-                      </Link>
+                      </button>
                     ) : (
                       <Link
                         href="/sign-in"
                         onClick={() => {
                           closeDropdown();
-                          closeMenu(); // Close menu when navigating to sign-in
+                          closeMenu();
                         }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
                       >
