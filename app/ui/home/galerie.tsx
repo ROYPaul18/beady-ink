@@ -8,7 +8,14 @@ import { ServiceType } from "@prisma/client";
 async function getPrestationsWithImages(): Promise<PrestationWithImages[]> {
   const response = await fetch("/api/prestation");
   if (!response.ok) throw new Error("Erreur lors de la récupération des prestations");
-  return response.json();
+
+  const data = await response.json();
+  
+  if (!Array.isArray(data)) {
+    throw new Error("Les données récupérées ne sont pas un tableau");
+  }
+
+  return data;
 }
 
 export default function Gallery() {
@@ -19,6 +26,7 @@ export default function Gallery() {
     async function fetchPrestations() {
       try {
         const data = await getPrestationsWithImages();
+        console.log("Données reçues :", data); // Vérifiez le contenu ici
         setPrestations(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des prestations", error);
@@ -30,7 +38,7 @@ export default function Gallery() {
 
   const filteredPrestations =
     selectedService === "ALL"
-      ? prestations
+      ? Array.isArray(prestations) ? prestations : [] // Vérifiez que prestations est un tableau
       : prestations.filter((prestation) => prestation.service.type === selectedService);
 
   return (
@@ -77,7 +85,7 @@ export default function Gallery() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPrestations.map((prestation) =>
           prestation.images.map((image) => (
-            <div key={image.id} className="relative h-80 bg-gray-200 rounded-md overflow-hidden">
+            <div key={prestation.name} className="relative h-80 bg-gray-200 rounded-md overflow-hidden">
               <Image
                 src={image.url}
                 alt={prestation.name}
