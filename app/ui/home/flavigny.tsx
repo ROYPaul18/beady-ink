@@ -37,17 +37,13 @@ export default function Flavi() {
             {/* Contenu texte (aligné à droite) */}
             <div className="space-y-2 lg:space-y-4 text-right">
               <p className="text-base font-bold md:text-xl text-green">
-                Salon l&apos;ink 7 rue de la mairie, 18340 Soye en Septaine
+                16Bis  Grande Rue, 18350 Flavigny
               </p>
               <p className="text-base md:text-xl text-green">
-                Salon de thé et de tatouage. Rendez-vous possible 1 semaine par mois et 
-                les mardis et samedis de 10h00 à 17h00.
+              salon privé chaleureux situé sur mon habitation.
               </p>
               <p className="text-base font-light md:text-xl text-green">
-                Prestations disponibles, projet tatouage et pose d&apos;ongle.
-              </p>
-              <p className="text-base font-light md:text-xl text-green">
-                Environnement apaisant pour venir passer un bon moment proche de Bourges.
+              Rendez-vous disponible du lundi au samedi de 9h00 à 19h00 uniquement sur rendez vous.
               </p>
             </div>
           

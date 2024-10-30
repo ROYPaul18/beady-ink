@@ -1,10 +1,9 @@
-'use client';
+'use client'
 import 'react-calendar/dist/Calendar.css';
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from 'next/dynamic'; // Import dynamique pour le calendrier
+import dynamic from 'next/dynamic';
 import OnglerieRecap from "@/app/ui/reservation/OnglerieRecap";
-import { Prestation } from "@/lib/types";
 import { useReservation } from '@/app/context/ReservationContext';
 
 // Charger le composant Calendar dynamiquement
@@ -27,30 +26,53 @@ export default function ReservationCalendar() {
     setSelectedTime(time);
   };
 
+  // Réintégration de handleRemovePrestation pour gérer la suppression d'une prestation
   const handleRemovePrestation = (id: number) => {
     const updatedPrestations = prestationsComplementaires.filter((p) => p.id !== id);
     setPrestationsComplementaires(updatedPrestations);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (selectedDate && selectedTime) {
-      console.log("Réservation enregistrée pour", selectedDate, selectedTime);
+      try {
+        const response = await fetch("/api/reservation", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: selectedDate,
+            time: selectedTime,
+            salon: selectedSalon,
+            serviceId: 1, // Remplacez par l'ID réel du service sélectionné
+          }),
+        });
+  
+        if (response.ok) {
+          alert("Réservation enregistrée !");
+          router.push("/profile"); // Rediriger vers la page de profil
+        } else {
+          alert("Erreur lors de la réservation. Veuillez réessayer.");
+        }
+      } catch (error) {
+        console.error("Erreur:", error);
+        alert("Une erreur est survenue. Veuillez réessayer.");
+      }
     } else {
       alert("Veuillez sélectionner une date et une heure.");
     }
   };
+  
 
-  // Calculer la durée totale basée uniquement sur les prestations complémentaires
   const durationInMinutes = useMemo(() => {
     return prestationsComplementaires.reduce((acc, p) => acc + p.duration, 0);
   }, [prestationsComplementaires]);
 
   const times = useMemo(() => {
-    const startTime = 9 * 60; // 9h00 en minutes
-    const endTime = 19 * 60; // 19h00 en minutes
+    const startTime = 9 * 60;
+    const endTime = 19 * 60;
     const timeSlots = [];
-
-    const durationIncrement = Math.max(durationInMinutes, 30); // Intervalle minimum de 30 minutes
+    const durationIncrement = Math.max(durationInMinutes, 30);
 
     for (let time = startTime; time + durationIncrement <= endTime; time += durationIncrement) {
       const hours = Math.floor(time / 60);

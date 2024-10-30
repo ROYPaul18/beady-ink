@@ -221,6 +221,10 @@ const Header = () => {
             <Link
               href="/reservation"
               className="block w-full h-full text-center"
+              onClick={() => {
+                closeDropdown();
+                closeMenu();
+              }}
             >
               Réserver maintenant
             </Link>

@@ -3,37 +3,28 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import AddPrestationModal from "@/app/ui/admin/AddPrestationModal";
-import PrestationList from "@/app/ui/admin/PrestationList";
-import { Prestation, Image as PrismaImage, Service } from "@prisma/client";
-import { ServiceType } from "@prisma/client";
-
-// Définir le type avec les images associées et le service
-export interface PrestationWithImages extends Prestation {
-  images: PrismaImage[];
-  service: Service; // Inclure le service pour accéder à son type
-}
-
-// Définir le type de session attendu
-interface Session {
-  user: {
-    role: string;
-  };
-}
+import AdminDashboard from "../../ui//admin/AdminDashboard";
 
 export default async function AdminPage() {
-  const session: Session | null = await getServerSession(authOptions);
-  if (!session) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
     redirect("/sign-in");
-  } else if (session.user.role !== "ADMIN") {
+  } else if ((session.user as { role: string }).role !== "ADMIN") {
     redirect("/");
   }
 
-  // Récupérer les prestations depuis la base de données avec les images associées et le service
-  const prestations: PrestationWithImages[] = await db.prestation.findMany({
+  // Charger les prestations et les réservations
+  const prestations = await db.prestation.findMany({
     include: {
-      images: true, // Inclure les images dans les données récupérées
-      service: true, // Inclure le service pour avoir accès au type
+      images: true,
+      service: true,
+    },
+  });
+
+  const reservations = await db.reservation.findMany({
+    include: {
+      user: true,
     },
   });
 
@@ -42,35 +33,7 @@ export default async function AdminPage() {
       <h1 className="text-4xl md:text-6xl text-green-600 text-center font-bold mb-8">
         Tableau de bord
       </h1>
-
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
-          Prestations Onglerie
-        </h2>
-        <AddPrestationModal serviceType={ServiceType.ONGLERIE} />
-        <PrestationList
-          prestations={prestations}
-          serviceType={ServiceType.ONGLERIE}
-        />
-
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">
-          Galerie Flash tattoo 
-        </h2>
-        <AddPrestationModal serviceType={ServiceType.FLASH_TATTOO} />
-        <PrestationList
-          prestations={prestations}
-          serviceType={ServiceType.FLASH_TATTOO}
-        />
-
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">
-          Galerie Tatouage
-        </h2>
-        <AddPrestationModal serviceType={ServiceType.TATOUAGE} />
-        <PrestationList
-          prestations={prestations}
-          serviceType={ServiceType.TATOUAGE}
-        />
-      </div>
+      <AdminDashboard prestations={prestations} reservations={reservations} />
     </div>
   );
 }

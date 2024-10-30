@@ -20,7 +20,7 @@ async function fetchOngleriePrestations() {
 
 export default async function OngleriePage() {
   const session = await getServerSession(authOptions);
-  const isAuthenticated = !!session; // Vérifie si l'utilisateur est connecté
+  const isAuthenticated = !!session; 
 
   const prestations = await fetchOngleriePrestations();
 

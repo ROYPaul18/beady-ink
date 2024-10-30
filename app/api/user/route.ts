@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 import { db } from "@/lib/db";  // Modifier selon votre configuration
 import * as z from "zod";
+import { sendConfirmationEmail } from "@/lib/sendEmail";  // Importer la fonction d'envoi d'e-mail
 
 // Schéma de validation des données d'inscription
 const userSchema = z.object({
@@ -42,6 +43,9 @@ export async function POST(req: Request) {
         role: 'USER',
       },
     });
+
+    // Envoi de l'e-mail de confirmation
+    await sendConfirmationEmail(email);
 
     // Exclure le mot de passe de la réponse
     const { password: _, ...rest } = newUser;

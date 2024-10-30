@@ -70,13 +70,16 @@ dependencies:
     version: 15.0.1(react-dom@18.3.1)(react@18.3.1)
   next-auth:
     specifier: ^4.24.10
-    version: 4.24.10(next@15.0.1)(react-dom@18.3.1)(react@18.3.1)
+    version: 4.24.10(next@15.0.1)(nodemailer@6.9.16)(react-dom@18.3.1)(react@18.3.1)
   next-cloudinary:
     specifier: ^6.16.0
     version: 6.16.0(next@15.0.1)(react@18.3.1)
   next-connect:
     specifier: ^1.0.0
     version: 1.0.0
+  nodemailer:
+    specifier: ^6.9.16
+    version: 6.9.16
   pg:
     specifier: ^8.13.1
     version: 8.13.1
@@ -130,6 +133,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.17.1
     version: 20.17.1
+  '@types/nodemailer':
+    specifier: ^6.4.16
+    version: 6.4.16
   '@types/qs':
     specifier: ^6.9.16
     version: 6.9.16
@@ -654,7 +660,7 @@ packages:
       next-auth: ^4
     dependencies:
       '@prisma/client': 5.21.1(prisma@5.21.1)
-      next-auth: 4.24.10(next@15.0.1)(react-dom@18.3.1)(react@18.3.1)
+      next-auth: 4.24.10(next@15.0.1)(nodemailer@6.9.16)(react-dom@18.3.1)(react@18.3.1)
     dev: false
 
   /@next/env@15.0.1:
@@ -3785,6 +3791,12 @@ packages:
     dependencies:
       undici-types: 6.19.8
 
+  /@types/nodemailer@6.4.16:
+    resolution: {integrity: sha512-uz6hN6Pp0upXMcilM61CoKyjT7sskBoOWpptkjjJp8jIMlTdc3xG01U7proKkXzruMS4hS0zqtHNkNPFB20rKQ==}
+    dependencies:
+      '@types/node': 20.17.1
+    dev: true
+
   /@types/prop-types@15.7.13:
     resolution: {integrity: sha512-hCZTSvwbzWGvhqxp/RqVqwU999pBf2vp7hzIjiYOsl8wqOmUxkQ6ddw1cV3l8811+kdUFus/q4d1Y3E3SyEifA==}
 
@@ -5932,7 +5944,7 @@ packages:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
 
-  /next-auth@4.24.10(next@15.0.1)(react-dom@18.3.1)(react@18.3.1):
+  /next-auth@4.24.10(next@15.0.1)(nodemailer@6.9.16)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-8NGqiRO1GXBcVfV8tbbGcUgQkAGsX4GRzzXXea4lDikAsJtD5KiEY34bfhUOjHLvr6rT6afpcxw2H8EZqOV6aQ==}
     peerDependencies:
       '@auth/core': 0.34.2
@@ -5951,6 +5963,7 @@ packages:
       cookie: 0.7.2
       jose: 4.15.9
       next: 15.0.1(react-dom@18.3.1)(react@18.3.1)
+      nodemailer: 6.9.16
       oauth: 0.9.15
       openid-client: 5.7.0
       preact: 10.24.3
@@ -6040,6 +6053,11 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    dev: false
+
+  /nodemailer@6.9.16:
+    resolution: {integrity: sha512-psAuZdTIRN08HKVd/E8ObdV6NO7NTBY3KsC30F7M4H1OnmLCUNaS56FpYxyb26zWLSyYF9Ozch9KYHhHegsiOQ==}
+    engines: {node: '>=6.0.0'}
     dev: false
 
   /nopt@5.0.0:
