@@ -3,45 +3,36 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-export async function POST(req: Request) {
+export async function PUT(req: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user) {
+  if (!session || !(session.user as { role?: string }).role || (session.user as { role?: string }).role !== "ADMIN") {
     return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
   }
 
-  const user = session.user;
-  const { date, time, salon, serviceId, prestationIds } = await req.json();
+  // Récupération de l'ID à partir de l'URL
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
 
-  if (!serviceId || !prestationIds || !prestationIds.length) {
-    return NextResponse.json({ message: "Le service et au moins une prestation sont requis" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ message: "ID de réservation manquant" }, { status: 400 });
   }
 
-  const formattedTime = time.includes("h")
-    ? time.replace("h", ":").padStart(5, "0")
-    : time;
+  const { status } = await req.json();
 
-  const reservationDateString = `${date.split("T")[0]}T${formattedTime}:00`;
-  const reservationDate = new Date(reservationDateString);
-
-  if (isNaN(reservationDate.getTime())) {
-    return NextResponse.json({ message: "La date ou l'heure est invalide" }, { status: 400 });
+  if (!["ACCEPTED", "REJECTED"].includes(status)) {
+    return NextResponse.json({ message: "Statut invalide" }, { status: 400 });
   }
 
   try {
-    const reservation = await db.reservation.create({
-      data: {
-        date: reservationDate,
-        salon: salon || "Inconnu",
-        user: { connect: { email: user.email ?? "" } },
-        service: { connect: { id: serviceId } },
-        prestations: { connect: prestationIds.map((id: number) => ({ id })) }, // Associer les prestations à la réservation
-      },
+    const updatedReservation = await db.reservation.update({
+      where: { id: Number(id) },
+      data: { status },
     });
 
-    return NextResponse.json({ reservation }, { status: 201 });
+    return NextResponse.json({ updatedReservation }, { status: 200 });
   } catch (error) {
-    console.error("Erreur de réservation :", error);
-    return NextResponse.json({ message: "Erreur lors de la réservation" }, { status: 500 });
+    console.error("Erreur de mise à jour de la réservation :", error);
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }
