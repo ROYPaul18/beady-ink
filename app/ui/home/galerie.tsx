@@ -26,7 +26,7 @@ export default function Gallery() {
     async function fetchPrestations() {
       try {
         const data = await getPrestationsWithImages();
-        console.log("Données reçues :", data); // Vérifiez le contenu ici
+        console.log("Données reçues :", data);
         setPrestations(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des prestations", error);
@@ -38,7 +38,7 @@ export default function Gallery() {
 
   const filteredPrestations =
     selectedService === "ALL"
-      ? Array.isArray(prestations) ? prestations : [] // Vérifiez que prestations est un tableau
+      ? Array.isArray(prestations) ? prestations : []
       : prestations.filter((prestation) => prestation.service.type === selectedService);
 
   return (
@@ -47,10 +47,10 @@ export default function Gallery() {
         GALERIE
       </h1>
 
-      <div className="flex justify-center gap-4 mb-8">
+      <div className="flex justify-center flex-wrap gap-2 mb-8">
         <button
           onClick={() => setSelectedService("TATOUAGE")}
-          className={`px-4 py-2 rounded-md ${
+          className={`px-4 py-2 text-sm sm:text-base rounded-md ${
             selectedService === "TATOUAGE" ? "bg-green text-white" : "bg-white text-green"
           }`}
         >
@@ -58,7 +58,7 @@ export default function Gallery() {
         </button>
         <button
           onClick={() => setSelectedService("FLASH_TATTOO")}
-          className={`px-4 py-2 rounded-md ${
+          className={`px-4 py-2 text-sm sm:text-base rounded-md ${
             selectedService === "FLASH_TATTOO" ? "bg-green text-white" : "bg-white text-green"
           }`}
         >
@@ -66,7 +66,7 @@ export default function Gallery() {
         </button>
         <button
           onClick={() => setSelectedService("ONGLERIE")}
-          className={`px-4 py-2 rounded-md ${
+          className={`px-4 py-2 text-sm sm:text-base rounded-md ${
             selectedService === "ONGLERIE" ? "bg-green text-white" : "bg-white text-green"
           }`}
         >
@@ -74,7 +74,7 @@ export default function Gallery() {
         </button>
         <button
           onClick={() => setSelectedService("ALL")}
-          className={`px-4 py-2 rounded-md ${
+          className={`px-4 py-2 text-sm sm:text-base rounded-md ${
             selectedService === "ALL" ? "bg-green text-white" : "bg-white text-green"
           }`}
         >
@@ -82,16 +82,16 @@ export default function Gallery() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPrestations.map((prestation) =>
           prestation.images.map((image) => (
-            <div key={prestation.name} className="relative h-80 bg-gray-200 rounded-md overflow-hidden">
+            <div key={`${prestation.name}-${image.url}`} className="relative w-full pb-[100%] bg-gray-200 rounded-md overflow-hidden">
               <Image
                 src={image.url}
                 alt={prestation.name}
                 fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="absolute inset-0 object-cover w-full h-full"
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               />
             </div>
           ))
