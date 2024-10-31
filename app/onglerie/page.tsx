@@ -26,9 +26,7 @@ export default async function OngleriePage() {
 
   return (
     <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-60">
-      <h1 className="text-green  text-center text-4xl md:text-6xl mb-10">
-        Prestations d'Onglerie
-      </h1>
+
       <PrestationList prestations={prestations} isAuthenticated={isAuthenticated} />
     </div>
   );

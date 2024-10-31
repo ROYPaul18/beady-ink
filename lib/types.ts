@@ -1,7 +1,7 @@
-// Importation de PrismaClient et des enums directement depuis Prisma
+// lib/types.ts
+
 import { ServiceType } from "@prisma/client";
 
-// Type pour une prestation
 export interface Prestation {
   id: number;
   name: string;
@@ -9,7 +9,7 @@ export interface Prestation {
   description: string;
   price: number;
   serviceId: number;
-  images: { id: number; url: string; prestationId: number }[]; // Ajout des images associées
+  images: { id: number; url: string; prestationId: number }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,10 +17,11 @@ export interface Prestation {
 interface Image {
   id: number;
   url: string;
-  prestationId: number; // clé étrangère qui lie l'image à la prestation
+  prestationId: number;
 }
 
-// Type pour une prestation avec ses images et son service associé
+// lib/types.ts
+
 export interface PrestationWithImages {
   id: number;
   name: string;
@@ -34,7 +35,7 @@ export interface PrestationWithImages {
     createdAt: Date; 
     prestationId: number; 
   }[];
-  service: {
+  service: { // `service` est rendu obligatoire ici
     id: number;
     type: ServiceType;
     createdAt: Date;
@@ -44,20 +45,18 @@ export interface PrestationWithImages {
   updatedAt: Date;
 }
 
-// Type pour les données de création de prestation
+
 export type CreatePrestationData = Omit<Prestation, 'id' | 'createdAt' | 'updatedAt'>;
 
-// Type pour le formulaire de création de prestation
 export type PrestationFormData = {
   name: string;
-  duration: string; // On utilise string car les inputs HTML renvoient des strings
+  duration: string;
   description: string;
   price: string;
   imageUrl: string;
   serviceType: ServiceType;
 };
 
-// Type pour un service
 export type Service = {
   id: number;
   createdAt: Date;
@@ -65,20 +64,19 @@ export type Service = {
   type: ServiceType;
 };
 
-// Type pour les données de création d'un service
 export type CreateServiceData = Omit<Service, 'id' | 'createdAt' | 'updatedAt'>;
 
-// Type pour le formulaire de création de service
 export type ServiceFormData = {
   type: string;
 };
 
-// Type pour une réservation avec informations utilisateur
 export interface ReservationWithUser {
   id: number;
   date: Date;
   salon: string;
-  status?: string; // Si ce champ est facultatif
+  status?: string;
+  service: { id: number; type: ServiceType };
+  prestations: PrestationWithImages[];
   user: {
     id: number;
     email: string;

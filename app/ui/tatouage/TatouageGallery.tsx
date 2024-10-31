@@ -6,10 +6,10 @@ import { Prestation } from '@/lib/types';
 
 // Composant pour afficher la galerie de tatouages avec gestion de la pagination
 const TatouageGallery: React.FC<{ prestations: Prestation[] }> = ({ prestations }) => {
-  const [visibleCount, setVisibleCount] = useState(5); // Nombre d'images visibles par défaut
+  const [visibleCount, setVisibleCount] = useState(15); // Nombre d'images visibles par défaut
 
   const handleSeeMore = () => {
-    setVisibleCount((prev) => prev + 5); // Afficher 5 images de plus à chaque clic
+    setVisibleCount((prev) => prev + 15); // Afficher 5 images de plus à chaque clic
   };
 
   return (

@@ -5,7 +5,7 @@ import { Prestation } from '@/lib/types';
 
 interface OnglerieRecapProps {
   prestations: Prestation[];
-  onRemovePrestation: (id: number) => void; // Nouvelle prop pour la suppression
+  onRemovePrestation: (id: number) => void;
 }
 
 const OnglerieRecap: React.FC<OnglerieRecapProps> = ({ prestations, onRemovePrestation }) => {
@@ -21,8 +21,7 @@ const OnglerieRecap: React.FC<OnglerieRecapProps> = ({ prestations, onRemovePres
   const totalDuration = prestations.reduce((acc, prestation) => acc + prestation.duration, 0);
 
   return (
-    <div className="bg-white p-4 rounded-md shadow">
-      <h3 className="text-xl font-bold mb-4">Mes prestations</h3>
+    <div className={`bg-white p-4 rounded-md shadow ${prestations.length > 3 ? 'max-h-[250px] overflow-y-auto scrollbar-custom' : ''}`}>
       {prestations.map((prestation) => (
         <div key={prestation.id} className="mb-4">
           <h4 className="font-semibold">{prestation.name}</h4>

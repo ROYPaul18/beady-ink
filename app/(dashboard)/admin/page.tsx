@@ -1,9 +1,10 @@
-// AdminPage.tsx
+// app/(dashboard)/admin/page.tsx
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import AdminDashboard from "../../ui//admin/AdminDashboard";
+import AdminDashboard from "../../ui/admin/AdminDashboard";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -14,7 +15,6 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  // Charger les prestations et les réservations
   const prestations = await db.prestation.findMany({
     include: {
       images: true,
@@ -25,11 +25,18 @@ export default async function AdminPage() {
   const reservations = await db.reservation.findMany({
     include: {
       user: true,
+      service: true,
+      prestations: {
+        include: {
+          images: true,
+          service: true, // Ajout pour inclure `service` dans chaque prestation
+        },
+      },
     },
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+    <div className=" bg-[url('/img/bg-marbre.png')] w-full ">
       <h1 className="text-4xl md:text-6xl text-green-600 text-center font-bold mb-8">
         Tableau de bord
       </h1>

@@ -36,7 +36,7 @@ const TattooForm: React.FC<TattooFormProps> = ({ onSubmit }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-lg mx-auto bg-opacity-80 bg-white rounded-lg p-6 shadow-md"
+      className="max-w-lg mx-auto bg-opacity-80 bg-white rounded-lg p-6 shadow-md mt-12"
     >
       <h2 className="text-center text-2xl font-bold mb-4">Entrer vos disponibilités</h2>
 

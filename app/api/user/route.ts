@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     });
 
     // Envoi de l'e-mail de confirmation
-    await sendConfirmationEmail(email);
+    // await sendConfirmationEmail(email);
 
     // Exclure le mot de passe de la réponse
     const { password: _, ...rest } = newUser;

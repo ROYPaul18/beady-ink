@@ -17,7 +17,7 @@ export default function TattooInformationPage() {
   };
 
   return (
-    <div className="bg-[url('/img/13.png')] min-h-screen bg-cover flex items-center justify-center p-6">
+    <div className="bg-[url('/img/13.png')] min-h-screen bg-cover flex items-start justify-center ">
       <TattooForm onSubmit={handleFormSubmit} />
     </div>
   );

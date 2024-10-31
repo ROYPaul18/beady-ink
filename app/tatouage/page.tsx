@@ -26,10 +26,10 @@ export default async function TatouagePage() {
 
   return (
     <div className="bg-[url('/img/13.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-60">
-      <h1 className="text-white text-center text-4xl md:text-6xl mb-10">
+      {/* <h1 className="text-white text-center text-4xl md:text-6xl mb-10">
         Nos Prestations
-      </h1>
-      <div className="flex justify-end mb-6">
+      </h1> */}
+      <div className="flex justify-end">
         <a
           href="/reservation/tatouage"
           className="bg-marron text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200"

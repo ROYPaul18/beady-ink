@@ -1,23 +1,25 @@
-// app/ui/onglerie/PrestationList.tsx
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { PrestationWithImages } from '@/lib/types';
-import Image from 'next/image';
+import { useRouter } from "next/navigation";
+import { PrestationWithImages } from "@/lib/types";
+import Image from "next/image";
 
 interface PrestationListProps {
   prestations: PrestationWithImages[];
   isAuthenticated: boolean;
 }
 
-const PrestationList: React.FC<PrestationListProps> = ({ prestations, isAuthenticated }) => {
+const PrestationList: React.FC<PrestationListProps> = ({
+  prestations,
+  isAuthenticated,
+}) => {
   const router = useRouter();
 
   const handleReservationClick = (id: number) => {
     if (isAuthenticated) {
       router.push(`/reservation/onglerie/calendar?id=${id}`);
     } else {
-      router.push('/sign-up');
+      router.push("/sign-up");
     }
   };
 
@@ -30,16 +32,16 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, isAuthenti
   }
 
   return (
-    <div className="  ">
+    <div className="">
       {prestations.map((prestation) => (
         <div
           key={prestation.id}
-          className="flex flex-col bg-white  md:flex-row md:h-[520px]"
+          className="flex flex-col bg-white shadow-lg  md:flex-row md:h-[520px] overflow-hidden"
         >
           {/* Contenu à gauche pour mobile et desktop */}
           <div className="w-full p-4 flex flex-col justify-between md:w-1/2 md:p-6">
-            <div>
-              <h3 className="text-3xl md:text-4xl font-bold text-green mb-2 md:mb-4">
+            <div className="mb-4">
+              <h3 className="text-3xl md:text-5xl font-bold text-green mb-2 md:mb-4">
                 {prestation.name}
               </h3>
 
@@ -50,24 +52,30 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, isAuthenti
                     src={prestation.images[0].url}
                     alt={`Image de ${prestation.name}`}
                     fill
-                    className="object-cover rounded-md"
+                    className="object-cover "
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 )}
               </div>
 
-              <p className="text-gray-700 text-xl mb-4">{prestation.description}</p>
-              <div className="text-2xl text-green flex justify-between mb-4">
+              <p className="text-gray-700 text-xl mb-4">
+                {prestation.description}
+              </p>
+            </div>
+
+            {/* Prix, durée, et bouton alignés en bas */}
+            <div className="mt-auto pt-4 border-t border-gray-200 flex flex-col gap-4">
+              <div className="text-2xl text-green flex justify-between">
                 <span>Durée : {prestation.duration} min</span>
                 <span>Prix : {prestation.price} €</span>
               </div>
+              <button
+                onClick={() => handleReservationClick(prestation.id)}
+                className="border border-green text-green px-3 py-2 rounded-sm text-lg hover:bg-green hover:text-white transition duration-200"
+              >
+                RÉSERVER CETTE PRESTATION
+              </button>
             </div>
-            <button
-              onClick={() => handleReservationClick(prestation.id)}
-              className="mt-4 border border-green text-green px-3 py-1 rounded-md text-lg hover:bg-green hover:text-white transition duration-200"
-            >
-              RÉSERVER CETTE PRESTATION
-            </button>
           </div>
 
           {/* Image à droite pour les écrans plus grands */}
