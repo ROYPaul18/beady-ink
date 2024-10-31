@@ -19,7 +19,7 @@ export default function Flavi() {
           {/* Contenu texte */}
           <div className="flex flex-col h-full justify-between">
             {/* Titre (laissé tel quel) */}
-            <h1 className="text-3xl md:text-4xl font-bold text-green mb-4 flex justify-end items-end">
+            <h1 className="text-3xl md:text-4xl font-bold text-green  flex justify-end items-end">
               Flavigny
             </h1>
             
@@ -35,7 +35,7 @@ export default function Flavi() {
             </div>
 
             {/* Contenu texte (aligné à droite) */}
-            <div className="space-y-2 lg:space-y-4 text-right">
+            <div className="space-y-2 lg:space-y-2 text-right">
               <p className="text-base font-bold md:text-xl text-green">
                 16Bis  Grande Rue, 18350 Flavigny
               </p>
@@ -45,6 +45,7 @@ export default function Flavi() {
               <p className="text-base font-light md:text-xl text-green">
               Rendez-vous disponible du lundi au samedi de 9h00 à 19h00 uniquement sur rendez vous.
               </p>
+
             </div>
           
             {/* Boutons (alignement du conteneur à droite) */}

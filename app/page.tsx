@@ -5,7 +5,7 @@ import Salons from "./ui/home/salons";
 import ReviewList from "./ui/home/ReviewList";
 export default function Home() {
   return (
-    <div className="bg-[url('/img/bg-marbre.png')]  px-8 py-2 md:px-26 lg:px-80">
+    <div className="bg-[url('/img/bg-marbre.png')]  px-8 py-2 md:px-26 lg:px-60">
         <Hero />
         <Salons />
         <Gallery />

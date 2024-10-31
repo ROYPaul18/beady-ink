@@ -29,7 +29,6 @@ export default async function FlashTattooPage() {
       <h1 className="text-white text-center text-4xl md:text-6xl mb-2">
         Galerie de Flash Tattoo
       </h1>
-      <p>Tous les flashs sont uniques et ne seront tatoué qu'une seule fois !</p>
       <div className="flex justify-end">
         <a
           href="/reservation/flashtattoo"

@@ -13,15 +13,14 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12 p-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 md:gap-6 md:p-6">
       {prestations.map((prestation) => (
         <div 
           key={prestation.id} 
-          className="shadow-lg overflow-hidden cursor-pointer" 
-          style={{ minWidth: '200px' }} // Largeur minimum fixée pour augmenter la taille de la carte tout en gardant le format carré
+          className="shadow-lg overflow-hidden cursor-pointer"
         >
           {prestation.images.length > 0 && (
-            <div className="relative w-full h-0 pb-[100%]"> {/* Conserve un carré avec une taille augmentée */}
+            <div className="relative w-full h-0 pb-[100%]">
               <Image
                 src={prestation.images[0].url}
                 alt={`Tatouage - ${prestation.name}`}

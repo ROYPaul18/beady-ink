@@ -1,7 +1,17 @@
 import Link from "next/link";
-import dynamic from "next/dynamic"; // Import dynamique si besoin
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation"; // Utilisation de la fonction redirect pour gérer la redirection
 
-export default function ReservationPage() {
+export default async function ReservationPage() {
+  // Vérifier la session de l'utilisateur
+  const session = await getServerSession(authOptions);
+
+  // Rediriger si l'utilisateur n'est pas connecté
+  if (!session || !session.user) {
+    redirect("/sign-up");
+  }
+
   return (
     <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-4 py-10">
       <h1 className="text-center text-green text-4xl md:text-5xl lg:text-6xl font-bold mb-10">
