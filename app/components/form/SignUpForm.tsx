@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 
 // Fonction pour formater dynamiquement le numéro de téléphone
 const formatPhoneNumber = (value: string) => {
-  const cleaned = value.replace(/\D/g, ""); // Enlever tout ce qui n'est pas un chiffre
+  const cleaned = value.replace(/\D/g, "");
   const match = cleaned.match(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);
 
   if (match) {
@@ -111,7 +111,7 @@ const SignUpForm = () => {
               Créer ton compte client
             </h2>
             <div className="space-y-4 md:space-y-4">
-              <div className="flex flex-col md:flex-row md:space-x-4">
+              <div className="flex flex-col gap-4 md:flex-row"> {/* Espacement ajusté pour mobile */}
                 {/* Nom */}
                 <FormField
                   control={form.control}
