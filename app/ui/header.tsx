@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,12 +23,11 @@ const Header = () => {
   const user = session?.user as ExtendedUser | undefined;
   const pathname = usePathname();
 
-  // Function to get the background image based on the current route
   const getBackgroundImage = () => {
     if (pathname === '/tatouage' || pathname === '/tattoo') {
       return '/img/bg-fleur.jpg';
     } else {
-      return '/img/bg-feuille.jpg'; // Default image
+      return '/img/bg-feuille.jpg';
     }
   };
 
@@ -49,7 +47,6 @@ const Header = () => {
     setDropdownOpen(false);
   };
 
-  // Disable scroll when menu is open
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = 'hidden';
@@ -67,18 +64,16 @@ const Header = () => {
 
   return (
     <header className={`relative ${menuOpen ? 'h-screen' : 'h-auto'}`}>
-      {/* Background Image */}
       <div className="absolute inset-0 -z-10">
         <Image
           src={getBackgroundImage()}
           alt="Background image"
-          fill // Use 'fill' prop instead of 'layout="fill"'
-          style={{ objectFit: 'cover' }} // Use 'style' prop for objectFit
+          fill
+          style={{ objectFit: 'cover' }}
           priority
         />
       </div>
 
-      {/* Header Content */}
       <div className="flex justify-between items-center p-4 relative z-10">
         <h1 className="text-3xl lg:text-6xl font-bold md:text-center md:flex-grow text-white">
           Beaudy Ink
@@ -87,12 +82,12 @@ const Header = () => {
         <button
           className="block lg:hidden text-3xl focus:outline-none text-white"
           onClick={toggleMenu}
+          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
         >
           {menuOpen ? '✕' : '☰'}
         </button>
       </div>
 
-      {/* Navigation */}
       <nav
         className={`${
           menuOpen
@@ -100,7 +95,6 @@ const Header = () => {
             : 'hidden'
         } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}
       >
-        {/* Navigation Links */}
         <div className="flex flex-col items-center lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20">
           <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/" onClick={closeMenu}>
@@ -124,11 +118,9 @@ const Header = () => {
           </h1>
         </div>
 
-        {/* User Icon and "Réserver maintenant" Button */}
         <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4 relative">
           <div className="relative">
-            <button onClick={toggleDropdown}>
-              {/* User Icon SVG */}
+            <button onClick={toggleDropdown} aria-label="Ouvrir le menu utilisateur">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -175,6 +167,7 @@ const Header = () => {
                           closeMenu();
                         }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all w-full text-center"
+                        aria-label="Se déconnecter"
                       >
                         Se déconnecter
                       </button>
@@ -226,7 +219,10 @@ const Header = () => {
             )}
           </div>
 
-          <button className="text-lg font-bold bg-white text-green rounded-sm px-4 py-1">
+          <button
+            className="text-lg font-bold bg-white text-green rounded-sm px-4 py-1"
+            aria-label="Réserver maintenant"
+          >
             <Link
               href="/reservation"
               className="block w-full h-full text-center"
