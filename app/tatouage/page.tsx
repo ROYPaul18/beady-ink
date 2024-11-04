@@ -1,9 +1,9 @@
-// app/reservation/tatouage/page.tsx
 export const dynamic = 'force-dynamic';
 
 import { db } from "@/lib/db";
 import TatouageGallery from "../ui/tatouage/TatouageGallery";
 import { Prestation } from "@/lib/types";
+import Image from 'next/image';
 
 // Fonction pour récupérer les prestations de tatouage
 async function getTatouages(): Promise<Prestation[]> {
@@ -25,10 +25,16 @@ export default async function TatouagePage() {
   const tatouages = await getTatouages();
 
   return (
-    <div className="bg-[url('/img/13.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-60">
-      {/* <h1 className="text-white text-center text-4xl md:text-6xl mb-10">
-        Nos Prestations
-      </h1> */}
+    <div className="relative min-h-screen px-8 py-2 md:px-26 lg:px-60">
+      {/* Image de fond optimisée */}
+      <Image
+        src="/img/13.png"
+        alt="Fond Tatouage"
+        fill
+        style={{ objectFit: "cover", zIndex: -1 }}
+        priority
+      />
+
       <div className="flex justify-end">
         <a
           href="/reservation/tatouage"
@@ -42,7 +48,6 @@ export default async function TatouagePage() {
     </div>
   );
 }
-
 
 export async function generateStaticParams() {
   const tatouages = await getTatouages();

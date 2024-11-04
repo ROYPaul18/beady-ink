@@ -1,12 +1,10 @@
-// ProfilePage.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import ProfileEditor from "../ui/profile/ProfileEditor";
 import ReservationList from "../ui/profile/ReservationList";
 import { redirect } from "next/navigation";
-import ReviewForm from "../ui/profile/ReviewForm"; // Import du composant ReviewForm
+import Image from 'next/image';
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
@@ -39,7 +37,16 @@ export default async function ProfilePage() {
   const reservations = userProfile?.reservations || [];
 
   return (
-    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen p-8 flex justify-center flex-col md:flex-row gap-8">
+    <div className="relative min-h-screen p-8 flex justify-center flex-col md:flex-row gap-8">
+      {/* Image de fond optimisée */}
+      <Image
+        src="/img/bg-marbre.png"
+        alt="Fond Profil"
+        fill
+        style={{ objectFit: "cover", zIndex: -1 }}
+        priority
+      />
+
       <div className="bg-white p-6 rounded-md shadow-md w-full md:w-1/2 h-full">
         <ProfileEditor userProfile={userProfile} />
       </div>

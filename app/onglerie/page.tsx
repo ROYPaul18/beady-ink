@@ -1,8 +1,8 @@
-// app/onglerie/page.tsx
 import PrestationList from '@/app/ui/onglerie/PrestationList';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import Image from 'next/image';
 
 async function fetchOngleriePrestations() {
   return await db.prestation.findMany({
@@ -25,7 +25,15 @@ export default async function OngleriePage() {
   const prestations = await fetchOngleriePrestations();
 
   return (
-    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-8 py-2 md:px-26 lg:px-60">
+    <div className="relative min-h-screen px-8 py-2 md:px-26 lg:px-60">
+      {/* Image de fond optimisée */}
+      <Image
+        src="/img/bg-marbre.png"
+        alt="Fond Onglerie"
+        fill
+        style={{ objectFit: "cover", zIndex: -1 }}
+        priority
+      />
 
       <PrestationList prestations={prestations} isAuthenticated={isAuthenticated} />
     </div>
