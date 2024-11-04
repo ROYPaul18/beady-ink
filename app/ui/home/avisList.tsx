@@ -5,7 +5,7 @@ export default function AvisList() {
         <h1 className="text-green text-center text-2xl md:text-6xl">
           Vos avis
         </h1>
-        <h3 className="text-green text-center text-lg md:text-lg mb-2"> (Laisser un avis apès la prestation)</h3>
+        <h2 className="text-green text-center text-lg md:text-lg mb-2"> (Laisser un avis apès la prestation)</h2>
       </div>
     </div>
   );

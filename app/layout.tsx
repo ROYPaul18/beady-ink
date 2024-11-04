@@ -34,6 +34,8 @@ export const metadata: Metadata = {
     default: 'Beaudy Ink - Onglerie et Tatouage à Soye-en-Septaine et Flavigny',
     template: 'Beaudy Ink - %s',
   },
+  description:
+  "Découvrez Beaudy Ink, un salon professionnel de tatouage et d'onglerie à Soye-en-Septaine et Flavigny, offrant des designs uniques et artistiques pour sublimer votre style.",
   openGraph: {
     description:
       "Salon d'onglerie et tatouage Beaudy Ink à Soye-en-Septaine et Flavigny. Designs uniques et professionnels pour vos ongles et tatouages.",

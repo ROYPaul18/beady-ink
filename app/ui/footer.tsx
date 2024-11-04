@@ -67,7 +67,7 @@ export default function Footer() {
 
         {/* Social media part - reorganized for mobile */}
         <div className="flex justify-center items-center gap-4">
-          <a href="#" className="transition-transform hover:scale-110">
+          <a href="/" className="transition-transform hover:scale-110">
             {/* Facebook Icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +87,7 @@ export default function Footer() {
             </h2>
           </div>
 
-          <a href="#" className="transition-transform hover:scale-110">
+          <a href="/" className="transition-transform hover:scale-110">
             {/* Instagram Icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"

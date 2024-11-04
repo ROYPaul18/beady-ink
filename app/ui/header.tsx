@@ -220,7 +220,7 @@ const Header = () => {
           </div>
 
           <button
-            className="text-lg font-bold bg-white text-green rounded-sm px-4 py-1"
+            className="text-lg font-bold bg-white text-green rounded-sm px-4 py-2"
             aria-label="Réserver maintenant"
           >
             <Link
