@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 
-// Définir une interface pour étendre les propriétés de l'utilisateur
+// Define the ExtendedUser interface
 interface ExtendedUser {
   name?: string | null;
   email?: string | null;
@@ -13,7 +14,7 @@ interface ExtendedUser {
   id?: number;
   nom?: string;
   prenom?: string;
-  role?: "USER" | "ADMIN";
+  role?: 'USER' | 'ADMIN';
 }
 
 const Header = () => {
@@ -23,12 +24,12 @@ const Header = () => {
   const user = session?.user as ExtendedUser | undefined;
   const pathname = usePathname();
 
-  // Définir dynamiquement l'image de fond en fonction de la route
+  // Function to get the background image based on the current route
   const getBackgroundImage = () => {
-    if (pathname === "/tatouage" || pathname === "/tattoo") {
-      return "/img/bg-fleur.jpg";
+    if (pathname === '/tatouage' || pathname === '/tattoo') {
+      return '/img/bg-fleur.jpg';
     } else {
-      return "/img/bg-feuille.jpg"; // Image par défaut
+      return '/img/bg-feuille.jpg'; // Default image
     }
   };
 
@@ -48,30 +49,37 @@ const Header = () => {
     setDropdownOpen(false);
   };
 
-  // Désactiver le scroll si le menu est ouvert
+  // Disable scroll when menu is open
   useEffect(() => {
     if (menuOpen) {
-      document.body.style.overflow = "hidden"; // Désactiver le scroll
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "auto"; // Réactiver le scroll
+      document.body.style.overflow = 'auto';
     }
 
     return () => {
-      document.body.style.overflow = "auto"; // Toujours réactiver le scroll quand le composant est démonté
+      document.body.style.overflow = 'auto';
     };
   }, [menuOpen]);
 
-  const isAuthenticated = status === "authenticated";
-  const isAdmin = user?.role === "ADMIN";
+  const isAuthenticated = status === 'authenticated';
+  const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <header
-      style={{ backgroundImage: `url(${getBackgroundImage()})` }}
-      className={`relative bg-cover bg-center ${
-        menuOpen ? "h-screen" : "h-auto"
-      }`}
-    >
-      <div className="flex justify-between items-center p-4 relative z-50">
+    <header className={`relative ${menuOpen ? 'h-screen' : 'h-auto'}`}>
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src={getBackgroundImage()}
+          alt="Background image"
+          fill // Use 'fill' prop instead of 'layout="fill"'
+          style={{ objectFit: 'cover' }} // Use 'style' prop for objectFit
+          priority
+        />
+      </div>
+
+      {/* Header Content */}
+      <div className="flex justify-between items-center p-4 relative z-10">
         <h1 className="text-3xl lg:text-6xl font-bold md:text-center md:flex-grow text-white">
           Beaudy Ink
         </h1>
@@ -80,19 +88,20 @@ const Header = () => {
           className="block lg:hidden text-3xl focus:outline-none text-white"
           onClick={toggleMenu}
         >
-          {menuOpen ? "✕" : "☰"}
+          {menuOpen ? '✕' : '☰'}
         </button>
       </div>
 
+      {/* Navigation */}
       <nav
         className={`${
           menuOpen
-            ? "fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-cover bg-center pt-20"
-            : "hidden"
-        } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0`}
+            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center pt-20 bg-cover bg-center'
+            : 'hidden'
+        } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}
       >
-        {/* Liens de navigation */}
-        <div className="flex flex-col items-center lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:ml-20 lg:mr-20">
+        {/* Navigation Links */}
+        <div className="flex flex-col items-center lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20">
           <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/" onClick={closeMenu}>
               Accueil
@@ -115,11 +124,11 @@ const Header = () => {
           </h1>
         </div>
 
-        {/* Icône utilisateur et bouton "Réserver maintenant" */}
+        {/* User Icon and "Réserver maintenant" Button */}
         <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4 relative">
           <div className="relative">
             <button onClick={toggleDropdown}>
-              {/* Icône SVG */}
+              {/* User Icon SVG */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -160,7 +169,7 @@ const Header = () => {
                         onClick={() => {
                           signOut({
                             redirect: true,
-                            callbackUrl: "/",
+                            callbackUrl: '/',
                           });
                           closeDropdown();
                           closeMenu();
