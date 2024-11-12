@@ -17,7 +17,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ prestationId }) => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`/api/reviews/${prestationId}`, {
+      const response = await fetch(`/api/review/${prestationId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

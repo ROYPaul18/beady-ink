@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from "react";
 import { Button } from "@/app/ui/button";
@@ -16,7 +16,7 @@ import {
 import { Input } from "../input";
 import { Textarea } from "../textarea";
 import { Dialog } from "@headlessui/react";
-import { ServiceType } from "@prisma/client";
+import { ServiceType, OnglerieCategory } from "@prisma/client";
 import Image from "next/image";
 
 interface AddPrestationModalProps {
@@ -38,6 +38,7 @@ const AddPrestationModal: React.FC<AddPrestationModalProps> = ({
       description: "",
       price: "",
       serviceType: serviceType,
+      category: serviceType === ServiceType.ONGLERIE ? "SEMI_PERMANENT" : undefined,
     },
   });
 
@@ -55,17 +56,13 @@ const AddPrestationModal: React.FC<AddPrestationModalProps> = ({
     const formData = new FormData();
     formData.append("serviceType", serviceType);
 
-    if (
-      serviceType === ServiceType.ONGLERIE ||
-      serviceType === ServiceType.FLASH_TATTOO
-    ) {
-      formData.append("price", data.price.toString());
-      formData.append("name", data.name); // Ajouter le nom dans le cas de FLASH_TATTOO aussi
-    }
+    formData.append("price", String(data.price || 0));
+    formData.append("name", data.name || "");
 
     if (serviceType === ServiceType.ONGLERIE) {
-      formData.append("duration", data.duration.toString());
-      formData.append("description", data.description);
+      formData.append("category", data.category || "");
+      formData.append("duration", String(data.duration || 0));
+      formData.append("description", data.description || "");
     }
 
     const validFiles = validateImages(imageFiles);
@@ -92,7 +89,6 @@ const AddPrestationModal: React.FC<AddPrestationModalProps> = ({
     const files = Array.from(e.target.files || []);
     const validFiles = validateImages(files);
 
-    // Mise à jour cumulative des images et des aperçus
     setImageFiles((prevFiles) => [...prevFiles, ...validFiles]);
     setImagePreviews((prevPreviews) => [
       ...prevPreviews,
@@ -101,9 +97,11 @@ const AddPrestationModal: React.FC<AddPrestationModalProps> = ({
   };
 
   const removeImage = (index: number, event: React.MouseEvent) => {
-    event.stopPropagation(); // Empêche l'ouverture de l'input de fichier
+    event.stopPropagation();
     setImageFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-    setImagePreviews((prevPreviews) => prevPreviews.filter((_, i) => i !== index));
+    setImagePreviews((prevPreviews) =>
+      prevPreviews.filter((_, i) => i !== index)
+    );
   };
 
   const renderFormFields = () => {
@@ -119,6 +117,33 @@ const AddPrestationModal: React.FC<AddPrestationModalProps> = ({
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input {...field} required />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Catégorie</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      required
+                      className="form-select"
+                      value={String(field.value) || ""}
+                      onChange={(e) =>
+                        field.onChange(e.target.value as OnglerieCategory)
+                      }
+                    >
+                      {Object.values(OnglerieCategory).map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

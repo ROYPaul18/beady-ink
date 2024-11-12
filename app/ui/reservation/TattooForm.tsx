@@ -1,3 +1,4 @@
+// app/ui/reservation/TattooForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,7 @@ interface TattooFormProps {
     availability: string;
     size: string;
     placement: string;
-    referenceImages: File[];
+    referenceImages: string[];
   }) => void;
 }
 
@@ -15,11 +16,13 @@ const TattooForm: React.FC<TattooFormProps> = ({ onSubmit }) => {
   const [availability, setAvailability] = useState('');
   const [size, setSize] = useState('');
   const [placement, setPlacement] = useState('');
-  const [referenceImages, setReferenceImages] = useState<File[]>([]);
+  const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      setReferenceImages(Array.from(event.target.files));
+      // Pour simplifier, nous utilisons les noms de fichiers comme références
+      const imageNames = Array.from(event.target.files).map(file => file.name);
+      setReferenceImages(imageNames);
     }
   };
 
@@ -87,7 +90,7 @@ const TattooForm: React.FC<TattooFormProps> = ({ onSubmit }) => {
         />
         {referenceImages.length > 0 && (
           <p className="text-sm text-gray-600 mt-2">
-            {referenceImages.length} image(s) sélectionnée(s)
+            {referenceImages.join(', ')}
           </p>
         )}
       </div>

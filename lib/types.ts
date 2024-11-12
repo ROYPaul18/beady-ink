@@ -1,6 +1,5 @@
 // lib/types.ts
-
-import { ServiceType } from "@prisma/client";
+import { ServiceType, OnglerieCategory } from "@prisma/client";
 
 export interface Prestation {
   id: number;
@@ -9,18 +8,11 @@ export interface Prestation {
   description: string;
   price: number;
   serviceId: number;
+  category?: OnglerieCategory | null; // La propriété est optionnelle
   images: { id: number; url: string; prestationId: number }[];
   createdAt: Date;
   updatedAt: Date;
 }
-
-interface Image {
-  id: number;
-  url: string;
-  prestationId: number;
-}
-
-// lib/types.ts
 
 export interface PrestationWithImages {
   id: number;
@@ -29,13 +21,14 @@ export interface PrestationWithImages {
   description: string;
   price: number;
   serviceId: number;
+  category?: OnglerieCategory | null;
   images: { 
     url: string; 
     id: number; 
     createdAt: Date; 
     prestationId: number; 
   }[];
-  service: { // `service` est rendu obligatoire ici
+  service: {
     id: number;
     type: ServiceType;
     createdAt: Date;
@@ -44,7 +37,6 @@ export interface PrestationWithImages {
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 export type CreatePrestationData = Omit<Prestation, 'id' | 'createdAt' | 'updatedAt'>;
 
@@ -55,6 +47,7 @@ export type PrestationFormData = {
   price: string;
   imageUrl: string;
   serviceType: ServiceType;
+  category?: OnglerieCategory;
 };
 
 export type Service = {
@@ -83,4 +76,26 @@ export interface ReservationWithUser {
   };
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface OpeningHour {
+  id?: number;
+  salon: string;
+  jour: string;
+  startTime: string;
+  endTime: string;
+  isClosed: boolean;
+}
+
+export interface TattooRequestWithUser {
+  id: number;
+  availability: string;
+  size: string;
+  placement: string;
+  referenceImages: string[];
+  healthData: { [key: string]: string };
+  user: {
+    nom: string;
+    phone: string;
+  };
 }

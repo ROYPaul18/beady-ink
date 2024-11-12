@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Soye() {
   return (
@@ -44,23 +45,23 @@ export default function Soye() {
             {/* Boutons */}
             <div className="mt-8">
               <div className="flex space-x-4 mb-4">
-                <button className="bg-beige text-red px-4 py-1 rounded">
+                <Link href="/tatouage" className="bg-beige text-red px-4 py-1 rounded">
                   Tatouage
-                </button>
-                <button className="bg-green text-beige px-4 py-1 rounded">
+                </Link>
+                <Link href="/onglerie"className="bg-green text-beige px-4 py-1 rounded">
                   Onglerie
-                </button>
+                </Link>
               </div>
-              <button className="bg-red text-beige px-4 py-2 rounded w-full lg:w-auto">
+              <Link href="/reservation" className="bg-red text-beige px-8 py-3 rounded w-full lg:w-auto">
                 Prenez rendez-vous !
-              </button>
+              </Link >
             </div>
           </div>
 
           {/* Image desktop */}
           <div className="hidden lg:flex justify-end lg:items-center">
             <Image
-              src="/img/bg-feuille.jpg"
+              src="/image0.jpeg"
               width={350}
               height={350}
               className="rounded-md object-cover"

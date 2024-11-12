@@ -1,12 +1,12 @@
 // app/context/ReservationContext.tsx
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Prestation } from '@/lib/types';
+import React, { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
+import { PrestationWithImages } from '@/lib/types';
 
 interface ReservationContextProps {
-  prestationsComplementaires: Prestation[];
-  setPrestationsComplementaires: (prestations: Prestation[]) => void;
+  prestationsComplementaires: PrestationWithImages[];
+  setPrestationsComplementaires: Dispatch<SetStateAction<PrestationWithImages[]>>;
 }
 
 const ReservationContext = createContext<ReservationContextProps | undefined>(undefined);
@@ -20,7 +20,7 @@ export const useReservation = () => {
 };
 
 export const ReservationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [prestationsComplementaires, setPrestationsComplementaires] = useState<Prestation[]>([]);
+  const [prestationsComplementaires, setPrestationsComplementaires] = useState<PrestationWithImages[]>([]);
 
   return (
     <ReservationContext.Provider

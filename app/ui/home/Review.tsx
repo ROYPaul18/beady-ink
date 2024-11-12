@@ -11,17 +11,25 @@ interface ReviewProps {
 
 const Review: React.FC<ReviewProps> = ({ rating, comment, user, prestationName }) => {
   return (
-    <div className="text-center p-4 border border-gray-300 rounded-md">
-      <div className="flex justify-center mb-2">
+    <div className="text-center p-8">
+      <div className="flex justify-center mb-6">
         {Array.from({ length: 5 }, (_, index) => (
-          <span key={index} className={`text-2xl ${index < rating ? 'text-green-800' : 'text-gray-300'}`}>
+          <span
+            key={index}
+            className={`text-8xl ${
+              index < rating
+                ? 'text-green' 
+                : 'text-transparent'
+            }`}
+            style={{ WebkitTextStroke: index < rating ? '0' : '1px #454C22' }}
+          >
             ★
           </span>
         ))}
       </div>
-      <p className="italic mb-2">“{comment}”</p>
-      <p className="font-semibold">{user.nom}</p>
-      <p className="text-gray-600">{prestationName}</p>
+      <p className="text-green italic text-2xl mb-4">“{comment}”</p>
+      <p className="font-semibold text-green text-xl">{user.nom}</p>
+      <p className="text-green text-lg">{prestationName}</p>
     </div>
   );
 };

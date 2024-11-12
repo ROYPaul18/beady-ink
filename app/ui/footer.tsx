@@ -53,13 +53,6 @@ export default function Footer() {
               href="/"
               className="underline hover:text-gray-200 transition-colors"
             >
-              Politiques de confidentialité
-            </Link>
-            <span className="hidden sm:inline">|</span>
-            <Link
-              href="/"
-              className="underline hover:text-gray-200 transition-colors"
-            >
               Site réalisé par Paul ROY
             </Link>
           </div>

@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import { useState } from "react";
 import { format } from "date-fns";
 import ReviewForm from "./ReviewForm";
@@ -31,7 +32,7 @@ export default function ReservationList({ reservations }: ReservationListProps) 
       case "ACCEPTED":
         return "Confirmé";
       case "REJECTED":
-        return "Reprendre un autre Rendez-vous";
+        return "Annulé";
       case "PENDING":
         return "En attente";
       default:
@@ -39,17 +40,40 @@ export default function ReservationList({ reservations }: ReservationListProps) 
     }
   };
 
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case "ACCEPTED":
+        return "bg-green text-white";
+      case "REJECTED":
+        return "bg-red-100 text-red-600";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-600";
+      default:
+        return "bg-gray-200 text-gray-500";
+    }
+  };
+
   return (
     <div className="p-6 rounded-md w-full max-w-lg">
-      <h2 className="text-3xl font-semibold mb-4 text-center">Mes Réservations</h2>
+      <h2 className="text-3xl font-semibold mb-4 text-center text-green">Mes Réservations</h2>
       
-      <h3 className="text-2xl font-semibold mt-6 mb-4">Prochains Rendez-vous</h3>
+      <h3 className="text-2xl font-semibold mt-6 mb-4 text-green">Prochains Rendez-vous</h3>
       <ul>
         {upcomingReservations.map((reservation) => (
-          <li key={reservation.id} className="border p-4 my-2 rounded bg-green-100 text-green-700">
+          <li key={reservation.id} className={`border p-4 my-2 rounded ${getStatusStyles(reservation.status)}`}>
             <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
             <p><strong>Salon :</strong> {reservation.salon}</p>
             <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
+
+            {/* Bouton de modification de la date pour les rendez-vous annulés */}
+            {reservation.status === "REJECTED" && (
+              <button
+                onClick={() => alert("Rediriger vers la page de modification de date")}
+                className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+              >
+                Modifier la date
+              </button>
+            )}
           </li>
         ))}
       </ul>

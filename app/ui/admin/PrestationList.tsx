@@ -1,12 +1,10 @@
-// PrestationList.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Prestation, Image as PrismaImage, ServiceType } from '@prisma/client';
+import { Prestation, Image as PrismaImage, ServiceType, OnglerieCategory } from '@prisma/client';
 import DeletePrestationButton from '@/app/ui/admin/DeletePrestationButton';
 import Image from 'next/image';
 
-// Étend le type Prestation pour inclure les images associées et le service
 interface PrestationWithImages extends Prestation {
   images: PrismaImage[];
   service: {
@@ -23,7 +21,6 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, serviceTyp
   const [currentPrestations, setCurrentPrestations] = useState<PrestationWithImages[]>([]);
 
   useEffect(() => {
-    // Filtrer les prestations en fonction du serviceType
     const filteredPrestations = prestations.filter(
       (prestation) => prestation.service.type === serviceType
     );
@@ -37,7 +34,6 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, serviceTyp
   const renderPrestationDetails = (prestation: PrestationWithImages) => {
     switch (serviceType) {
       case ServiceType.TATOUAGE:
-        // Afficher uniquement les images pour les tatouages
         return (
           <div className="flex space-x-2 mt-2">
             {prestation.images.length > 0 ? (
@@ -58,7 +54,6 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, serviceTyp
         );
 
       case ServiceType.FLASH_TATTOO:
-        // Afficher les images et le prix pour les flash tattoos
         return (
           <>
             <p className="text-sm text-gray-500">Prix: {prestation.price} €</p>
@@ -82,7 +77,6 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, serviceTyp
         );
 
       case ServiceType.ONGLERIE:
-        // Afficher toutes les informations pour les prestations d'onglerie
         return (
           <>
             <p className="text-sm text-gray-500">
@@ -113,24 +107,57 @@ const PrestationList: React.FC<PrestationListProps> = ({ prestations, serviceTyp
     }
   };
 
+  // Grouper les prestations d'onglerie par catégorie
+  const groupedOngleriePrestations = currentPrestations.reduce((acc, prestation) => {
+    const category = prestation.category || 'Autre';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(prestation);
+    return acc;
+  }, {} as Record<string, PrestationWithImages[]>);
+
   return (
     <div className="bg-white shadow rounded-lg p-4">
       {currentPrestations.length > 0 ? (
-        <ul className="divide-y divide-gray-200">
-          {currentPrestations.map((prestation) => (
-            <li key={prestation.id} className="py-4 flex flex-col space-y-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-lg font-medium text-gray-800">{prestation.name}</p>
-                  {renderPrestationDetails(prestation)}
+        serviceType === ServiceType.ONGLERIE ? (
+          // Affichage par catégorie pour les prestations d'onglerie
+          Object.entries(groupedOngleriePrestations).map(([category, prestations]) => (
+            <div key={category} className="mb-6">
+              <h1 className="text-xl font-bold text-gray-800 mb-4">{category}</h1>
+              <ul className="divide-y divide-gray-200">
+                {prestations.map((prestation) => (
+                  <li key={prestation.id} className="py-4 flex flex-col space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-lg font-medium text-gray-800">{prestation.name}</p>
+                        {renderPrestationDetails(prestation)}
+                      </div>
+                      <DeletePrestationButton id={prestation.id} onDelete={handleDelete} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        ) : (
+          // Affichage normal pour les autres types de prestations
+          <ul className="divide-y divide-gray-200">
+            {currentPrestations.map((prestation) => (
+              <li key={prestation.id} className="py-4 flex flex-col space-y-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-lg font-medium text-gray-800">{prestation.name}</p>
+                    {renderPrestationDetails(prestation)}
+                  </div>
+                  <DeletePrestationButton id={prestation.id} onDelete={handleDelete} />
                 </div>
-                <DeletePrestationButton id={prestation.id} onDelete={handleDelete} />
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )
       ) : (
-        <p className="text-grayx&-600 text-center">
+        <p className="text-gray-600 text-center">
           Aucune prestation trouvée pour le service sélectionné.
         </p>
       )}

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
-// Define the ExtendedUser interface
 interface ExtendedUser {
   name?: string | null;
   email?: string | null;
@@ -141,21 +140,21 @@ const Header = () => {
               <div className="absolute top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 z-50 w-48">
                 <ul className="flex flex-col text-center space-y-4">
                   {!isAuthenticated && (
-                    <li>
+                    <li >
                       <Link
                         href="/sign-up"
                         onClick={() => {
                           closeDropdown();
                           closeMenu();
                         }}
-                        className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all"
+                        className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all hover:bg-white hover:text-green border-2 border-green"
                       >
                         Se créer un compte
                       </Link>
                     </li>
                   )}
 
-                  <li>
+                  <li className='hover:bg-green hover:text-white'>
                     {isAuthenticated ? (
                       <button
                         onClick={() => {
@@ -166,7 +165,7 @@ const Header = () => {
                           closeDropdown();
                           closeMenu();
                         }}
-                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all w-full text-center"
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all w-full text-center"
                         aria-label="Se déconnecter"
                       >
                         Se déconnecter
@@ -186,14 +185,14 @@ const Header = () => {
                   </li>
 
                   {isAdmin && (
-                    <li>
+                    <li className='hover:bg-green hover:text-white'>
                       <Link
                         href="/admin"
                         onClick={() => {
                           closeDropdown();
                           closeMenu();
                         }}
-                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:text-white  transition-all"
                       >
                         Mon dashboard
                       </Link>
@@ -201,14 +200,14 @@ const Header = () => {
                   )}
 
                   {isAuthenticated && (
-                    <li>
+                    <li className='hover:bg-green hover:text-white'>
                       <Link
                         href="/profile"
                         onClick={() => {
                           closeDropdown();
                           closeMenu();
                         }}
-                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-green transition-all"
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all"
                       >
                         Mon profil & réservations
                       </Link>

@@ -156,7 +156,7 @@ export default function ProfileEditor({ userProfile }: ProfileEditorProps) {
 
       <div className="mt-6 flex gap-2">
         <button onClick={handleDelete} className="w-1/2 py-2 px-3 bg-red text-white rounded-md text-sm font-medium">
-          Supprimer
+          Supprimer mon compte
         </button>
         <button onClick={handleUpdate} className="w-1/2 py-2 px-3 bg-green text-white rounded-md text-sm font-medium">
           Enregistrer

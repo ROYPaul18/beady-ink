@@ -10,7 +10,7 @@ export default function ReservationActions() {
 
   const handleContinue = () => {
     if (prestationsComplementaires.length > 0) {
-      router.push('/reservation/onglerie/calendar');
+      router.push('/reservation/onglerie/${currentCategory}/finalisation');
     } else {
       alert('Veuillez sélectionner au moins une prestation.');
     }

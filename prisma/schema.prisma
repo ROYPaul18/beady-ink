@@ -1,87 +1,127 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   directUrl = env("DIRECT_URL")
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
+}
+
+enum OnglerieCategory {
+  SEMI_PERMANENT
+  POSE_GEL
+  SOIN
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  email        String        @unique
-  nom          String        @default("Nom temporaire")
-  prenom       String        @default("Prénom temporaire")
-  telephone    String        @unique @default("0000000000")
-  password     String
-  role         Role          @default(USER)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  reservations Reservation[]
-  reviews      Review[]      // Relation avec les avis
+  id             Int               @id @default(autoincrement())
+  email          String            @unique
+  nom            String            @default("Nom temporaire")
+  prenom         String            @default("Prénom temporaire")
+  telephone      String            @unique @default("0000000000")
+  password       String
+  role           Role              @default(USER)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  reservations   Reservation[]
+  reviews        Review[]
+  tattooRequests TattooRequest[]
 }
 
+
+model TattooRequest {
+  id              Int       @id @default(autoincrement())
+  availability    String
+  size            String
+  placement       String
+  referenceImages String[]
+  healthData      Json
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id])
+  serviceId       Int
+  service         Service   @relation(fields: [serviceId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+
+
 model Service {
-  id           Int           @id @default(autoincrement())
-  type         ServiceType   @unique
-  prestations  Prestation[]
-  reservations Reservation[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id              Int              @id @default(autoincrement())
+  type            ServiceType      @unique
+  prestations     Prestation[]
+  reservations    Reservation[]
+  tattooRequests  TattooRequest[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model Prestation {
-  id           Int           @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   name         String
   duration     Int
   description  String
   price        Float
   serviceId    Int
-  service      Service       @relation(fields: [serviceId], references: [id])
-  reservations Reservation[] @relation("ReservationPrestations")
-  images       Image[]       // Relation avec le modèle Image
-  reviews      Review[]      // Relation avec les avis
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  service      Service           @relation(fields: [serviceId], references: [id])
+  reservations Reservation[]     @relation("ReservationPrestations")
+  images       Image[]
+  reviews      Review[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  category     OnglerieCategory? 
 }
 
 model Image {
-  id           Int           @id @default(autoincrement())
-  url          String        // URL de l'image sur Cloudinary
-  prestationId Int           // Clé étrangère vers la prestation
-  prestation   Prestation    @relation(fields: [prestationId], references: [id], onDelete: Cascade)
-  createdAt    DateTime      @default(now())
+  id           Int        @id @default(autoincrement())
+  url          String
+  prestationId Int
+  prestation   Prestation @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
 }
 
 model Reservation {
-  id           Int           @id @default(autoincrement())
-  user         User          @relation(fields: [userId], references: [id])
-  userId       Int
-  service      Service       @relation(fields: [serviceId], references: [id])
-  serviceId    Int
-  prestations  Prestation[]  @relation("ReservationPrestations")
-  date         DateTime
-  salon        String
-  status       String        @default("PENDING")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  reviews      Review[]      // Relation avec les avis
+  id          Int          @id @default(autoincrement())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      Int
+  service     Service      @relation(fields: [serviceId], references: [id])
+  serviceId   Int
+  prestations Prestation[] @relation("ReservationPrestations")
+  date        DateTime
+  time        String // Ajout du champ time
+  salon       String
+  status      String       @default("PENDING")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  reviews     Review[]
+  tattooData  String?
+  healthData  String?
 }
 
 model Review {
-  id           Int           @id @default(autoincrement())
-  rating       Int           // Note de 1 à 5
-  comment      String        // Texte de l'avis
-  userId       Int
-  user         User          @relation(fields: [userId], references: [id])
+  id            Int          @id @default(autoincrement())
+  rating        Int
+  comment       String
+  userId        Int
+  user          User         @relation(fields: [userId], references: [id])
   reservationId Int?
-  reservation  Reservation?  @relation(fields: [reservationId], references: [id])
-  prestationId Int?
-  prestation   Prestation?   @relation(fields: [prestationId], references: [id])
-  createdAt    DateTime      @default(now())
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+  prestationId  Int?
+  prestation    Prestation?  @relation(fields: [prestationId], references: [id])
+  createdAt     DateTime     @default(now())
+}
+
+model OpeningHours {
+  id        Int      @id @default(autoincrement())
+  salon     String
+  jour      String
+  startTime String
+  endTime   String
+  createdAt DateTime @default(now())
+  isClosed  Boolean  @default(false)
+  date      DateTime
+  updatedAt DateTime @updatedAt
 }
 
 enum Role {
@@ -95,5 +135,3 @@ enum ServiceType {
   TATOUAGE
   FLASH_TATTOO
 }
-
-

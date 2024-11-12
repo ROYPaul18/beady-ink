@@ -23,6 +23,7 @@
   "include": [
     "types/next-env.d.ts",
     "types/next-auth.d.ts",
+    "types/file-saver.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

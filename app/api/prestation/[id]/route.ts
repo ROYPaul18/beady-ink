@@ -31,3 +31,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
+  const id = params.id;
+
+  if (!id) {
+    return NextResponse.json({ message: 'ID is required' }, { status: 400 });
+  }
+
+  try {
+    const { status } = await request.json();
+
+    // Validation simple du statut
+    if (!['ACCEPTED', 'REJECTED'].includes(status)) {
+      return NextResponse.json({ message: 'Invalid status' }, { status: 400 });
+    }
+
+    // Mise à jour du statut dans la base de données
+    const updatedReservation = await db.reservation.update({
+      where: { id: parseInt(id, 10) },
+      data: { status },
+    });
+
+    if (!updatedReservation) {
+      return NextResponse.json({ message: 'Reservation not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Reservation status updated successfully', reservation: updatedReservation });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la réservation:', error);
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 });
+  }
+}

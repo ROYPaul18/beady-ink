@@ -9,10 +9,10 @@ export default function Hero() {
         </h1>
         <div className="flex flex-col items-center md:flex-row md:justify-start">
           <Image
-            src="/img/bg-feuille.jpg"
+            src="/image1.jpeg"
             alt="Photo de Chloé"
             width={300}
-            height={350}
+            height={500}
             className="mx-auto md:mr-10 lg:mr-40 rounded-md"
           />
           <div className="flex-col mt-4 md:mt-0">

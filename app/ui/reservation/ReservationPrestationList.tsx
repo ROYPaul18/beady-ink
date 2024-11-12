@@ -25,13 +25,18 @@ const ReservationPrestationList: React.FC<ReservationPrestationListProps> = ({
     }
   };
 
+  if (!prestations.length) {
+    return (
+      <div className="text-center text-gray-500">
+        Aucune prestation d'onglerie trouvée
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
       {prestations.map((prestation) => (
-        <div
-          key={prestation.id}
-          className="flex flex-col bg-white shadow-md rounded-md p-3 md:p-4"
-        >
+        <div key={prestation.id} className="flex flex-col bg-white shadow-md rounded-md p-3 md:p-4">
           <div className="w-full flex flex-col">
             <h3 className="text-xl font-bold text-green mb-2">
               {prestation.name}

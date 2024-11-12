@@ -1,14 +1,15 @@
-import PrestationList from '@/app/ui/onglerie/PrestationList';
+// app/reservation/onglerie/page.tsx
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth/next';
+import PrestationList from '@/app/ui/onglerie/PrestationList';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import Image from 'next/image';
+import { ServiceType } from '@prisma/client';
 
-async function fetchOngleriePrestations() {
-  return await db.prestation.findMany({
+async function getOngleriePrestations() {
+  return db.prestation.findMany({
     where: {
       service: {
-        type: 'ONGLERIE',
+        type: ServiceType.ONGLERIE,
       },
     },
     include: {
@@ -18,22 +19,14 @@ async function fetchOngleriePrestations() {
   });
 }
 
-export default async function OngleriePage() {
+export default async function OnglerieReservationPage() {
   const session = await getServerSession(authOptions);
-  const isAuthenticated = !!session; 
+  const prestations = await getOngleriePrestations();
 
-  const prestations = await fetchOngleriePrestations();
+  const isAuthenticated = !!session;
 
   return (
-    <div className="relative min-h-screen px-8 py-2 md:px-26 lg:px-60">
-      {/* Image de fond optimisée */}
-      <Image
-        src="/img/bg-marbre.png"
-        alt="Fond Onglerie"
-        fill
-        style={{ objectFit: "cover", zIndex: -1 }}
-        priority
-      />
+    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-4 py-10">
 
       <PrestationList prestations={prestations} isAuthenticated={isAuthenticated} />
     </div>

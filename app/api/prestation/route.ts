@@ -1,28 +1,33 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { ServiceType } from '@prisma/client';
+import { ServiceType, OnglerieCategory } from '@prisma/client';
 import { Readable } from 'stream';
 import cloudinary from '@/lib/cloudinary';
 
 // Schéma de validation pour la prestation
 const prestationSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').optional(),
+  name: z.string().optional(),
   duration: z.preprocess((val) => val === '' ? undefined : val, z.number().min(1, 'La durée doit être positive')).optional(),
   price: z.preprocess((val) => val === '' ? undefined : val, z.number().min(0, 'Le prix doit être positif')).optional(),
   description: z.string().optional(),
   serviceType: z.nativeEnum(ServiceType),
+  category: z.nativeEnum(OnglerieCategory).nullable().optional(),
 }).refine((data) => {
   if (data.serviceType === ServiceType.ONGLERIE) {
-    return data.name && data.duration !== undefined && data.description && data.price !== undefined;
-  }
-  if (data.serviceType === ServiceType.FLASH_TATTOO) {
-    return data.price !== undefined;
+    return !!data.name && data.duration !== undefined && !!data.description && data.price !== undefined && !!data.category;
+  } else if (data.serviceType === ServiceType.FLASH_TATTOO) {
+    return !!data.name && data.price !== undefined;
+  } else if (data.serviceType === ServiceType.TATOUAGE) {
+    // Aucun champ n'est requis pour TATOUAGE
+    return true;
   }
   return true;
 }, {
   message: 'Certains champs requis sont manquants pour ce type de prestation.',
 });
+
+
 
 // Fonction pour convertir un fichier en ReadableStream pour Cloudinary
 const bufferToStream = (buffer: Buffer): Readable => {
@@ -67,6 +72,8 @@ export const runtime = 'nodejs';
 
 // Handler pour la création d'une prestation
 export async function POST(req: Request) {
+  console.log("Valeurs de OnglerieCategory:", OnglerieCategory);
+
   try {
     const contentType = req.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
@@ -87,13 +94,25 @@ export async function POST(req: Request) {
       }
     }
 
+    console.log("Champs reçus:", fields);
+
+    // Vérification de la validité de la catégorie uniquement pour les prestations de type ONGLERIE
+    const categoryValue = fields.serviceType === ServiceType.ONGLERIE && fields.category && OnglerieCategory && Object.values(OnglerieCategory).includes(fields.category as OnglerieCategory)
+      ? (fields.category as OnglerieCategory)
+      : null;
+
+    console.log("Catégorie transformée:", categoryValue);
+
     const prestationData = prestationSchema.parse({
-      name: fields.name || undefined,
+      name: fields.name as string | undefined,
       duration: fields.duration ? Number(fields.duration) : undefined,
       price: fields.price ? Number(fields.price) : undefined,
-      description: fields.description || undefined,
+      description: fields.description as string | undefined,
       serviceType: fields.serviceType as ServiceType,
+      category: categoryValue,
     });
+
+    console.log("Données validées par le schéma:", prestationData);
 
     const result = await db.$transaction(async (tx) => {
       const service = await tx.service.findUnique({
@@ -117,6 +136,7 @@ export async function POST(req: Request) {
           price: prestationData.price || 0,
           description: prestationData.description || '',
           serviceId: service.id,
+          category: prestationData.category,
           images: {
             create: imageUrls.map((url) => ({ url })),
           },
@@ -201,34 +221,39 @@ export async function DELETE(req: Request) {
   }
 }
 
-// Handler pour la récupération des prestations (sans pagination)
+
 export async function GET(req: Request) {
-  console.log('Début de la fonction GET /api/prestation');
   try {
+    const url = new URL(req.url);
+    const serviceTypeParam = url.searchParams.get('serviceType');
+    const categoryParam = url.searchParams.get('category');
+
+    if (!serviceTypeParam || !(serviceTypeParam in ServiceType)) {
+      return NextResponse.json(
+        { success: false, message: "Type de service non valide ou manquant." },
+        { status: 400 }
+      );
+    }
+
+    const serviceType = serviceTypeParam as ServiceType;
+
     const prestations = await db.prestation.findMany({
+      where: {
+        service: { type: serviceType },
+        ...(categoryParam ? { category: categoryParam as OnglerieCategory } : {}),
+      },
       include: {
-        images: {
-          select: {
-            url: true,
-          },
-        },
-        service: {
-          select: {
-            type: true,
-          },
-        },
+        images: { select: { url: true } },
+        service: { select: { type: true } },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
 
-    console.log(`Nombre de prestations récupérées : ${prestations.length}`);
-    return NextResponse.json(prestations);
+    return NextResponse.json({ success: true, prestations, count: prestations.length }, { status: 200 });
   } catch (error) {
     console.error("Erreur lors de la récupération des prestations:", error);
     return NextResponse.json(
-      { error: "Erreur lors de la récupération des prestations" },
+      { success: false, message: "Erreur lors de la récupération des prestations." },
       { status: 500 }
     );
   }
