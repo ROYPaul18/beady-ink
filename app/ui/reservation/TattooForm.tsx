@@ -1,39 +1,38 @@
-// app/ui/reservation/TattooForm.tsx
 'use client';
 
 import { useState } from 'react';
 
 interface TattooFormProps {
-  onSubmit: (data: {
-    availability: string;
-    size: string;
-    placement: string;
-    referenceImages: string[];
-  }) => void;
+  onSubmit: (data: FormData) => void;
 }
 
 const TattooForm: React.FC<TattooFormProps> = ({ onSubmit }) => {
   const [availability, setAvailability] = useState('');
   const [size, setSize] = useState('');
   const [placement, setPlacement] = useState('');
-  const [referenceImages, setReferenceImages] = useState<string[]>([]);
+  const [referenceImages, setReferenceImages] = useState<File[]>([]);  // Stocke les fichiers image
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      // Pour simplifier, nous utilisons les noms de fichiers comme références
-      const imageNames = Array.from(event.target.files).map(file => file.name);
-      setReferenceImages(imageNames);
+      // Assurez-vous d'utiliser les fichiers réels pour l'upload
+      const files = Array.from(event.target.files);
+      setReferenceImages(files);
     }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    onSubmit({
-      availability,
-      size,
-      placement,
-      referenceImages,
+    const formData = new FormData();
+    formData.append('availability', availability);
+    formData.append('size', size);
+    formData.append('placement', placement);
+
+    // Ajouter les fichiers au formData
+    referenceImages.forEach(file => {
+      formData.append('referenceImages', file);
     });
+
+    onSubmit(formData);
   };
 
   return (
@@ -90,7 +89,7 @@ const TattooForm: React.FC<TattooFormProps> = ({ onSubmit }) => {
         />
         {referenceImages.length > 0 && (
           <p className="text-sm text-gray-600 mt-2">
-            {referenceImages.join(', ')}
+            {referenceImages.map((file) => file.name).join(', ')}
           </p>
         )}
       </div>

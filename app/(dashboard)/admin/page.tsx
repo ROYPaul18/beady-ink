@@ -1,12 +1,10 @@
-// app/(dashboard)/admin/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import AdminDashboard from "../../ui/admin/AdminDashboard";
-import { initializeHours } from "@/lib/initializeHours";
-import { TattooRequestWithUser } from "@/lib/types";
+import { generateOpeningHoursForYear } from "@/lib/initializeHours";
+import { TattooRequestWithUser, FlashTattooRequestWithUser, OpeningHour } from "@/lib/types";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -17,36 +15,52 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const [rawPrestations, rawReservations, flavignyHours, soyeHours, rawTattooRequests] =
-    await Promise.all([
-      db.prestation.findMany({
-        include: {
-          images: true,
-          service: true,
-        },
-      }),
-      db.reservation.findMany({
-        include: {
-          user: true,
-          service: true,
-          prestations: {
-            include: {
-              images: true,
-              service: true,
-            },
+  const [
+    rawPrestations,
+    rawReservations,
+    flavignyHours,
+    soyeHours,
+    rawTattooRequests,
+    rawFlashTattooRequests,
+  ] = await Promise.all([
+    db.prestation.findMany({
+      include: {
+        images: true,
+        service: true,
+      },
+    }),
+    db.reservation.findMany({
+      include: {
+        user: true,
+        service: true,
+        prestations: {
+          include: {
+            images: true,
+            service: true,
           },
         },
-      }),
-      initializeHours("Flavigny"),
-      initializeHours("Soye-en-Septaine"),
-      db.tattooRequest.findMany({
-        include: {
-          user: true,
-        },
-      }),
-    ]);
+      },
+    }),
+    db.openingHours.findMany({
+      where: { salon: "Flavigny" },
+    }),
+    db.openingHours.findMany({
+      where: { salon: "Soye-en-Septaine" },
+    }),
+    db.tattooRequest.findMany({
+      include: {
+        user: true,
+      },
+    }),
+    db.flashTattooRequest.findMany({
+      include: {
+        user: true,
+        service: true,
+      },
+    }),
+  ]);
 
-  const rawOpeningHours = [...flavignyHours, ...soyeHours];
+  const rawOpeningHours: OpeningHour[] = [...flavignyHours, ...soyeHours];
 
   const prestations = rawPrestations.map((prestation) => ({
     ...prestation,
@@ -62,11 +76,15 @@ export default async function AdminPage() {
   }));
 
   const openingHours = rawOpeningHours.map((hour) => ({
-    ...hour,
-    salon: hour.salon ?? "",
-    jour: hour.jour ?? "",
+    id: hour.id,
+    salon: hour.salon,
+    jour: hour.jour,
     startTime: hour.startTime,
     endTime: hour.endTime,
+    date: hour.date,
+    isClosed: hour.isClosed,
+    createdAt: hour.createdAt,
+    updatedAt: hour.updatedAt,
   }));
 
   const tattooRequests: TattooRequestWithUser[] = rawTattooRequests.map((request) => ({
@@ -76,13 +94,27 @@ export default async function AdminPage() {
     placement: request.placement,
     referenceImages: request.referenceImages ?? [],
     healthData:
-      typeof request.healthData === 'object' && request.healthData !== null
+      typeof request.healthData === "object" && request.healthData !== null
         ? (request.healthData as { [key: string]: string })
         : {},
     user: {
-      nom: request.user?.nom ?? 'Nom inconnu',
-      prenom: request.user?.prenom ?? '',
-      phone: request.user?.telephone ?? 'Non fourni', // Assurez-vous d'utiliser 'phone' et de fournir une valeur par défaut
+      nom: request.user?.nom ?? "Nom inconnu",
+      prenom: request.user?.prenom ?? "",
+      phone: request.user?.telephone ?? "Non fourni",
+    },
+  }));
+
+  const flashTattooRequests: FlashTattooRequestWithUser[] = rawFlashTattooRequests.map((request) => ({
+    id: request.id,
+    flashTattooId: request.flashTattooId,
+    healthData:
+      typeof request.healthData === "object" && request.healthData !== null
+        ? (request.healthData as { [key: string]: string })
+        : {},
+    user: {
+      nom: request.user?.nom ?? "Nom inconnu",
+      prenom: request.user?.prenom ?? "",
+      phone: request.user?.telephone ?? "Non fourni",
     },
   }));
 
@@ -96,6 +128,7 @@ export default async function AdminPage() {
         reservations={reservations}
         openingHours={openingHours}
         tattooRequests={tattooRequests}
+        flashTattooRequests={flashTattooRequests}
       />
     </div>
   );

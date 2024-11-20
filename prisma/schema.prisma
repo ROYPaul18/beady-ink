@@ -15,46 +15,60 @@ enum OnglerieCategory {
 }
 
 model User {
-  id             Int               @id @default(autoincrement())
-  email          String            @unique
-  nom            String            @default("Nom temporaire")
-  prenom         String            @default("Prénom temporaire")
-  telephone      String            @unique @default("0000000000")
-  password       String
-  role           Role              @default(USER)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  reservations   Reservation[]
-  reviews        Review[]
-  tattooRequests TattooRequest[]
+  id                  Int                  @id @default(autoincrement())
+  email               String               @unique
+  nom                 String               @default("Nom temporaire")
+  prenom              String               @default("Prénom temporaire")
+  telephone           String               @unique @default("0000000000")
+  password            String
+  role                Role                 @default(USER)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  reservations        Reservation[]
+  reviews             Review[]
+  tattooRequests      TattooRequest[]
+  flashTattooRequests FlashTattooRequest[]
 }
 
-
 model TattooRequest {
-  id              Int       @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   availability    String
   size            String
   placement       String
   referenceImages String[]
   healthData      Json
   userId          Int
-  user            User      @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
   serviceId       Int
-  service         Service   @relation(fields: [serviceId], references: [id])
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  service         Service  @relation(fields: [serviceId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model FlashTattooRequest {
+  id            Int      @id @default(autoincrement()) // ID unique pour chaque demande
+  userId        Int     // ID de l'utilisateur qui a fait la demande
+  user          User    @relation(fields: [userId], references: [id])
+  flashTattooId Int     // ID du flash tattoo sélectionné
+  healthData    Json    // Données de santé (par exemple, informations sur les allergies)
+  serviceId     Int     // ID du service
+  service       Service @relation(fields: [serviceId], references: [id]) // Relation avec le service (flash tattoo)
+  createdAt     DateTime @default(now()) // Date de la demande
+  updatedAt     DateTime @updatedAt // Date de mise à jour
 }
 
 
 
+
 model Service {
-  id              Int              @id @default(autoincrement())
-  type            ServiceType      @unique
-  prestations     Prestation[]
-  reservations    Reservation[]
-  tattooRequests  TattooRequest[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                  Int                  @id @default(autoincrement())
+  type                ServiceType          @unique
+  prestations         Prestation[]
+  reservations        Reservation[]
+  tattooRequests      TattooRequest[]
+  flashTattooRequests FlashTattooRequest[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model Prestation {
@@ -70,7 +84,7 @@ model Prestation {
   reviews      Review[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
-  category     OnglerieCategory? 
+  category     OnglerieCategory?
 }
 
 model Image {
@@ -116,12 +130,14 @@ model OpeningHours {
   id        Int      @id @default(autoincrement())
   salon     String
   jour      String
-  startTime String
-  endTime   String
+  startTime String?
+  endTime   String?
   createdAt DateTime @default(now())
   isClosed  Boolean  @default(false)
   date      DateTime
   updatedAt DateTime @updatedAt
+  weekKey   String?
+  @@unique([salon, date])
 }
 
 enum Role {

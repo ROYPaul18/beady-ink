@@ -1,52 +1,64 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { addMonths, eachDayOfInterval, format, startOfDay, endOfDay } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { addDays, startOfDay, startOfWeek, format } from "date-fns";
+import { fr } from "date-fns/locale";
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { salon } = await req.json();
+    const salons = ["Flavigny", "Soye-en-Septaine"];
+    const startDate = startOfDay(new Date()); // Date de départ : aujourd'hui
+    const daysInYear = 365; // Générer les horaires pour un an
 
-    // Supprimer tous les horaires existants pour ce salon (optionnel si vous voulez réinitialiser complètement)
-    await db.openingHours.deleteMany({
-      where: { salon }
-    });
+    console.log("Génération des horaires d'ouverture pour un an.");
 
-    // Générer les dates pour les 6 prochains mois
-    const startDate = new Date();
-    const endDate = addMonths(startDate, 6);
-    
-    const days = eachDayOfInterval({
-      start: startOfDay(startDate),
-      end: endOfDay(endDate)
-    });
+    // Parcourir chaque jour de l'année
+    for (let i = 0; i < daysInYear; i++) {
+      const currentDate = addDays(startDate, i);
+      const dayOfWeek = currentDate.getDay(); // 0 = dimanche, 1 = lundi, etc.
+      const isSunday = dayOfWeek === 0;
 
-    // Créer les horaires pour chaque jour
-    const hoursData = days.map(date => {
-      const jour = format(date, 'EEEE', { locale: fr }).toLowerCase(); // 'lundi', 'mardi', etc.
-      const isClosed = jour === 'dimanche'; // Exemple : fermé le dimanche
-      
-      return {
-        salon,
-        jour,
-        date, // Gardez `date` en format Date si le modèle le permet
-        startTime: "09:00",
-        endTime: "19:00",
-        isClosed
-      };
-    });
+      // Calculer la `weekKey` pour la semaine de la date actuelle
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const weekKey = format(weekStart, "yyyy-MM-dd");
 
-    // Créer les horaires dans la base de données
-    const result = await db.openingHours.createMany({
-      data: hoursData
-    });
+      for (const salon of salons) {
+        const isClosed = salon === "Soye-en-Septaine" || isSunday;
 
-    return NextResponse.json({ 
-      message: "Horaires initialisés avec succès",
-      count: result.count 
+        // Vérifier si un enregistrement existe déjà
+        const existingRecord = await db.openingHours.findFirst({
+          where: {
+            salon,
+            date: currentDate,
+          },
+        });
+
+        if (!existingRecord) {
+          // Créer un nouvel horaire si aucun horaire n'existe déjà
+          await db.openingHours.create({
+            data: {
+              salon,
+              jour: format(currentDate, "eeee", { locale: fr }).toLowerCase(),
+              date: currentDate,
+              weekKey, // Ajouter la `weekKey`
+              startTime: isClosed ? "" : "09:00",
+              endTime: isClosed ? "" : "19:00",
+              isClosed: isClosed,
+            },
+          });
+        }
+      }
+    }
+
+    console.log("Horaires d'ouverture générés avec succès pour un an.");
+    return NextResponse.json({
+      success: true,
+      message: "Horaires générés avec succès.",
     });
   } catch (error) {
-    console.error("Erreur lors de l'initialisation des horaires :", error);
-    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+    console.error("Erreur lors de la génération des horaires :", error);
+    return NextResponse.json(
+      { success: false, message: "Erreur lors de la génération des horaires." },
+      { status: 500 }
+    );
   }
 }

@@ -5,38 +5,26 @@ import AddPrestationModal from "@/app/ui/admin/AddPrestationModal";
 import PrestationList from "@/app/ui/admin/PrestationList";
 import ReservationList from "@/app/ui/admin/ReservationList";
 import OpeningHoursEditor from "@/app/ui/admin/OpeningHoursEditor";
-import { PrestationWithImages, ReservationWithUser, OpeningHour } from "@/lib/types";
+import TattooRequests from "@/app/ui/admin/TattooRequests";  // Import du composant TattooRequests
 import { saveAs } from 'file-saver';
+import { PrestationWithImages, ReservationWithUser, OpeningHour, TattooRequestWithUser, FlashTattooRequestWithUser } from "@/lib/types";
 
 interface AdminDashboardProps {
   prestations: PrestationWithImages[];
   reservations: ReservationWithUser[];
   openingHours: OpeningHour[];
-  tattooRequests: TattooRequestWithUser[]; // Ajout de la propriété
-}
-
-interface TattooRequestWithUser {
-  id: number;
-  availability: string;
-  size: string;
-  placement: string;
-  referenceImages: string[];
-  healthData: { [key: string]: string };
-  user: {
-    nom: string;
-    phone: string;
-  };
+  tattooRequests: TattooRequestWithUser[]; // Demandes de tatouage
+  flashTattooRequests: FlashTattooRequestWithUser[]; // Demandes de flash tattoo
 }
 
 export default function AdminDashboard({
   prestations,
   reservations: initialReservations,
   openingHours,
-  tattooRequests, // Ajout de la propriété
+  tattooRequests, // Demandes de tatouage
+  flashTattooRequests, // Demandes de flash tattoo
 }: AdminDashboardProps) {
-  const [showReservations, setShowReservations] = useState(false);
-  const [showOpeningHours, setShowOpeningHours] = useState(false);
-  const [showTattooRequests, setShowTattooRequests] = useState(false);
+  const [activeTab, setActiveTab] = useState<'prestations' | 'reservations' | 'openingHours' | 'tattooRequests'>('prestations');
   const [reservations, setReservations] = useState(initialReservations);
 
   useEffect(() => {
@@ -60,10 +48,9 @@ export default function AdminDashboard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'ACCEPTED' }),
       });
-  
+
       if (!response.ok) throw new Error('Erreur lors de l\'acceptation de la réservation');
-  
-      // Met à jour le statut de la réservation dans l'état local
+
       setReservations((prev) =>
         prev.map((res) =>
           res.id === reservationId ? { ...res, status: 'ACCEPTED' } : res
@@ -74,7 +61,7 @@ export default function AdminDashboard({
       console.error(error);
     }
   };
-  
+
   const handleRejectReservation = async (reservationId: number) => {
     try {
       const response = await fetch(`/api/reservation/${reservationId}`, {
@@ -82,10 +69,9 @@ export default function AdminDashboard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'REJECTED' }),
       });
-  
+
       if (!response.ok) throw new Error('Erreur lors du rejet de la réservation');
-  
-      // Met à jour le statut de la réservation dans l'état local
+
       setReservations((prev) =>
         prev.map((res) =>
           res.id === reservationId ? { ...res, status: 'REJECTED' } : res
@@ -96,14 +82,13 @@ export default function AdminDashboard({
       console.error(error);
     }
   };
-  
 
   const prestationsWithCategory = prestations.map((prestation) => ({
     ...prestation,
     category: prestation.category ?? null,
   }));
 
-  // Formatage des horaires d'ouverture avec conversion de l'ID en number
+  // Formatage des horaires d'ouverture
   const formattedOpeningHours = openingHours.map((hour) => ({
     ...hour,
     id: hour.id ? Number(hour.id) : undefined,
@@ -124,87 +109,32 @@ export default function AdminDashboard({
     <div>
       <div className="flex justify-center gap-4 mb-8">
         <button
-          onClick={() => {
-            setShowReservations(false);
-            setShowOpeningHours(false);
-            setShowTattooRequests(false);
-          }}
-          className={`px-4 py-2 rounded ${!showReservations && !showOpeningHours && !showTattooRequests ? "bg-green text-white" : "bg-gray-300  hover:bg-green hover:text-white"}`}
+          onClick={() => setActiveTab('prestations')}
+          className={`px-4 py-2 rounded ${activeTab === 'prestations' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Voir les Prestations
         </button>
         <button
-          onClick={() => {
-            setShowReservations(true);
-            setShowOpeningHours(false);
-            setShowTattooRequests(false);
-          }}
-          className={`px-4 py-2 rounded ${showReservations ? "bg-green text-white" : "bg-gray-300  hover:bg-green hover:text-white"}`}
+          onClick={() => setActiveTab('reservations')}
+          className={`px-4 py-2 rounded ${activeTab === 'reservations' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Voir les Réservations
         </button>
         <button
-          onClick={() => {
-            setShowReservations(false);
-            setShowOpeningHours(true);
-            setShowTattooRequests(false);
-          }}
-          className={`px-4 py-2 rounded ${showOpeningHours ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white "}`}
+          onClick={() => setActiveTab('openingHours')}
+          className={`px-4 py-2 rounded ${activeTab === 'openingHours' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Gestion des Horaires
         </button>
         <button
-          onClick={() => {
-            setShowReservations(false);
-            setShowOpeningHours(false);
-            setShowTattooRequests(true);
-          }}
-          className={`px-4 py-2 rounded ${showTattooRequests ? "bg-green text-white" : "bg-gray-300  hover:bg-green hover:text-white"}`}
+          onClick={() => setActiveTab('tattooRequests')}
+          className={`px-4 py-2 rounded ${activeTab === 'tattooRequests' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Voir les Demandes de Tatouage
         </button>
       </div>
 
-      {showReservations ? (
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-semibold text-green mb-4">
-            Liste des Réservations
-          </h2>
-          <ReservationList
-            reservations={reservations}
-            onAccept={handleAcceptReservation}
-            onReject={handleRejectReservation}
-          />
-        </div>
-      ) : showOpeningHours ? (
-        <div className="max-w-5xl mx-auto">
-          <OpeningHoursEditor initialHours={formattedOpeningHours} salon="Flavigny" />
-        </div>
-      ) : showTattooRequests ? (
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-semibold text-green mb-4">
-            Liste des Demandes de Tatouage
-          </h2>
-          <ul>
-            {tattooRequests.map((request) => (
-              <li key={request.id} className="bg-white border-b border-gray-200 p-6 shadow-md rounded mb-4 text-green">
-                <p><strong>Nom :</strong> {request.user.nom}</p>
-                <p><strong>Téléphone :</strong> {request.user.phone}</p>
-                <p><strong>Disponibilité :</strong> {request.availability}</p>
-                <p><strong>Taille :</strong> {request.size}</p>
-                <p><strong>Emplacement :</strong> {request.placement}</p>
-                <p><strong>Images de référence :</strong> {request.referenceImages.length} fichier(s)</p>
-                <button
-                  onClick={() => downloadHealthDataCSV(request.healthData, request.user.nom)}
-                  className="mt-4 px-4 py-2 bg-green text-white rounded hover:bg-green-600 transition-colors"
-                >
-                  Télécharger le Questionnaire Santé
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
+      {activeTab === 'prestations' && (
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
             Prestations Onglerie
@@ -224,6 +154,32 @@ export default function AdminDashboard({
           <AddPrestationModal serviceType="TATOUAGE" />
           <PrestationList prestations={prestationsWithCategory} serviceType="TATOUAGE" />
         </div>
+      )}
+
+      {activeTab === 'reservations' && (
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold text-green mb-4">
+            Liste des Réservations
+          </h2>
+          <ReservationList
+            reservations={reservations}
+            onAccept={handleAcceptReservation}
+            onReject={handleRejectReservation}
+          />
+        </div>
+      )}
+
+      {activeTab === 'openingHours' && (
+        <div className="max-w-5xl mx-auto">
+          <OpeningHoursEditor initialHours={formattedOpeningHours} salon="Flavigny" />
+        </div>
+      )}
+
+      {activeTab === 'tattooRequests' && (
+        <TattooRequests
+          tattooRequests={tattooRequests}
+          flashTattooRequests={flashTattooRequests}
+        />
       )}
     </div>
   );

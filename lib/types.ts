@@ -77,15 +77,30 @@ export interface ReservationWithUser {
   createdAt: Date;
   updatedAt: Date;
 }
+// lib/types.ts
+export interface FlashTattooRequestWithUser {
+  id: number;
+  healthData: { [key: string]: string };
+  user: {
+    nom: string;
+    phone: string;
+  };
+  flashTattooId: number;
+}
+
 
 export interface OpeningHour {
-  id?: number;
+  id: number;
   salon: string;
   jour: string;
-  startTime: string;
-  endTime: string;
+  startTime: string | null;
+  endTime: string | null;
+  date: Date;
+  createdAt: Date;
+  updatedAt: Date;
   isClosed: boolean;
 }
+
 
 export interface TattooRequestWithUser {
   id: number;

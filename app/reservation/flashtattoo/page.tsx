@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { db } from '@/lib/db';
-import FlashTattooGallery from '../../ui/tattoo/FlashTattooGallery';
+import FlashTattooGalleryReser from '../../ui/reservation/FlashTattooGalleryReser';
 import { Prestation } from '@/lib/types';
 
 export default async function FlashTattooReservation() {
@@ -28,7 +28,7 @@ export default async function FlashTattooReservation() {
       <h1 className="text-center text-white text-4xl md:text-5xl font-bold mb-10">
         Choisissez votre Flash Tattoo
       </h1>
-      <FlashTattooGallery prestations={prestations} />
+      <FlashTattooGalleryReser prestations={prestations} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default function Footer() {
 
   // Function to get the background image based on the current route
   const getBackgroundImage = () => {
-    if (pathname === '/tatouage' || pathname === '/tattoo') {
+    if (pathname === '/tatouage' || pathname === '/tattoo' || pathname === '/reservation/tatouage' || pathname === '/reservation/flashtattoo') {
       return '/img/bg-fleur.jpg'; // Specific image for tattoo pages
     } else {
       return '/img/bg-feuille.jpg'; // Default image

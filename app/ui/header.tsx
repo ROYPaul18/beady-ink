@@ -23,9 +23,9 @@ const Header = () => {
   const pathname = usePathname();
 
   const getBackgroundImage = () => {
-    if (pathname === '/tatouage' || pathname === '/tattoo') {
+    if (pathname === '/tatouage' || pathname === '/tattoo' || pathname === '/reservation/tatouage' || pathname === '/reservation/flashtattoo') {
       return '/img/bg-fleur.jpg';
-    } else {
+    } else { 
       return '/img/bg-feuille.jpg';
     }
   };
