@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -18,6 +18,14 @@ interface WeeklyTimeSlotSelectorProps {
   onSelect: (date: string, time: string) => void;
 }
 
+interface OpeningHour {
+  id: number | null;
+  isClosed: boolean;
+  startTime: string;
+  endTime: string;
+  salon: string;
+}
+
 const daysOfWeek = [
   "lundi",
   "mardi",
@@ -27,6 +35,54 @@ const daysOfWeek = [
   "samedi",
   "dimanche",
 ];
+
+const getDatesString = (startDate: Date): string => {
+  return daysOfWeek
+    .map((_, i) => format(addDays(startDate, i), "yyyy-MM-dd"))
+    .join(",");
+};
+
+const generateTimeSlots = (
+  date: string,
+  startTime: string,
+  endTime: string,
+  durationInMinutes: number
+): string[] => {
+  const slots: string[] = [];
+  let current = parseISO(`${date}T${startTime}`);
+  const end = parseISO(`${date}T${endTime}`);
+
+  while (isBefore(current, end)) {
+    const slotEndTime = addMinutes(current, durationInMinutes);
+    if (isBefore(slotEndTime, end) || isSameDay(slotEndTime, end)) {
+      slots.push(format(current, "HH:mm"));
+    }
+    current = slotEndTime;
+  }
+  return slots;
+};
+
+const generateTimeSlotsFromData = (
+  data: { [key: string]: OpeningHour },
+  duration: number
+): { [key: string]: string[] } => {
+  const timeSlots: { [key: string]: string[] } = {};
+
+  Object.entries(data).forEach(([date, openingHour]) => {
+    if (!openingHour.isClosed) {
+      timeSlots[date] = generateTimeSlots(
+        date,
+        openingHour.startTime,
+        openingHour.endTime,
+        duration
+      );
+    } else {
+      timeSlots[date] = []; // Salon fermé : aucun créneau
+    }
+  });
+
+  return timeSlots;
+};
 
 export default function WeeklyTimeSlotSelector({
   salon,
@@ -39,101 +95,116 @@ export default function WeeklyTimeSlotSelector({
   const [weeklyTimeSlots, setWeeklyTimeSlots] = useState<{
     [date: string]: string[];
   }>({});
-  const [openDays, setOpenDays] = useState<{ [date: string]: boolean }>({});
+  const [openingHours, setOpeningHours] = useState<{
+    [date: string]: OpeningHour;
+  }>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<{
     date: string;
     time: string;
   } | null>(null);
-
-  const effectiveDuration = durationInMinutes || 15;
-
-  // Fonction pour récupérer les horaires d'ouverture et générer les créneaux
-  const fetchOpeningHoursAndSlots = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const dates = daysOfWeek.map((_, i) =>
-        format(addDays(startDate, i), "yyyy-MM-dd")
-      );
-      const queryString = `salon=${encodeURIComponent(
-        salon
-      )}&dates=${dates.join(",")}`;
-      console.log(
-        "Requête envoyée à l'API :",
-        `/api/opening-hours?${queryString}`
-      );
-
-      const response = await fetch(`/api/opening-hours?${queryString}`);
-      if (!response.ok) {
-        throw new Error(
-          "Erreur lors de la récupération des créneaux et horaires d'ouverture"
-        );
-      }
-
-      const data = await response.json();
-
-      const newTimeSlots: { [date: string]: string[] } = {};
-      const newOpenDays: { [date: string]: boolean } = {};
-
-      dates.forEach((date) => {
-        const dayInfo = data[date];
-        console.log(`Date : ${date}`, dayInfo);
-
-        newOpenDays[date] = !dayInfo?.isClosed;
-
-        if (!dayInfo?.isClosed && dayInfo?.startTime && dayInfo?.endTime) {
-          newTimeSlots[date] = generateTimeSlots(
-            date,
-            dayInfo.startTime,
-            dayInfo.endTime
-          );
-        } else {
-          newTimeSlots[date] = [];
-        }
-      });
-
-      console.log("newOpenDays :", newOpenDays);
-      console.log("newTimeSlots :", newTimeSlots);
-
-      setWeeklyTimeSlots(newTimeSlots);
-      setOpenDays(newOpenDays);
-    } catch (err) {
-      console.error("Error fetching opening hours and slots:", err);
-      setError("Impossible de charger les créneaux horaires.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fonction pour générer les créneaux horaires pour chaque jour donné
-  const generateTimeSlots = (
-    date: string,
-    startTime: string,
-    endTime: string
-  ): string[] => {
-    const slots: string[] = [];
-    let current = parseISO(`${date}T${startTime}`);
-    const end = parseISO(`${date}T${endTime}`);
-
-    while (isBefore(current, end)) {
-      const slotEndTime = addMinutes(current, effectiveDuration);
-      // Vérifie si le créneau final ne dépasse pas l'heure de fin
-      if (isBefore(slotEndTime, end) || isSameDay(slotEndTime, end)) {
-        slots.push(format(current, "HH:mm"));
-      }
-      current = slotEndTime;
-    }
-    return slots;
-  };
+  const [activeSalon, setActiveSalon] = useState<string>(salon);
 
   useEffect(() => {
-    fetchOpeningHoursAndSlots();
-  }, [startDate, salon]);
+    const fetchOpeningHoursAndSlots = async () => {
+      setLoading(true);
+      setError(null);
 
-  // Gérer la sélection d'un créneau
+      try {
+        const dates = daysOfWeek.map((_, i) =>
+          format(addDays(startDate, i), "yyyy-MM-dd")
+        );
+
+        const response = await fetch(
+          `/api/opening-hours?salon=${encodeURIComponent(
+            salon
+          )}&dates=${dates.join(",")}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des horaires");
+        }
+
+        const data = await response.json();
+        const newTimeSlots: { [date: string]: string[] } = {};
+        const newOpeningHours: { [date: string]: OpeningHour } = {};
+
+        dates.forEach((date) => {
+          const dayInfo = data[date];
+
+          newOpeningHours[date] = {
+            id: dayInfo?.id || null,
+            isClosed: dayInfo?.isClosed ?? false,
+            startTime: dayInfo?.startTime || "",
+            endTime: dayInfo?.endTime || "",
+            salon: salon,
+          };
+
+          // Générer des créneaux uniquement si le salon est ouvert
+          if (!dayInfo?.isClosed) {
+            newTimeSlots[date] = generateTimeSlots(
+              date,
+              dayInfo?.startTime || "",
+              dayInfo?.endTime || "",
+              durationInMinutes
+            );
+          } else {
+            newTimeSlots[date] = [];
+          }
+        });
+
+        setOpeningHours(newOpeningHours);
+        setWeeklyTimeSlots(newTimeSlots);
+
+        // Déterminer et mettre à jour le salon actif
+        const activeSalon = determineActiveSalon(newOpeningHours);
+        setActiveSalon(activeSalon);
+
+        if (activeSalon !== salon) {
+          // Charger les horaires pour l'autre salon si nécessaire
+          const alternateResponse = await fetch(
+            `/api/opening-hours?salon=${encodeURIComponent(
+              activeSalon
+            )}&dates=${dates.join(",")}`
+          );
+
+          if (alternateResponse.ok) {
+            const alternateData = await alternateResponse.json();
+            const alternateTimeSlots = generateTimeSlotsFromData(
+              alternateData,
+              durationInMinutes
+            );
+
+            setOpeningHours(alternateData);
+            setWeeklyTimeSlots(alternateTimeSlots);
+          }
+        }
+      } catch (err) {
+        console.error("Erreur lors de la récupération des horaires :", err);
+        setError("Impossible de charger les créneaux horaires.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOpeningHoursAndSlots();
+  }, [startDate, salon, durationInMinutes]);
+
+  const determineActiveSalon = (openingHoursData: {
+    [key: string]: OpeningHour;
+  }) => {
+    const dates = Object.keys(openingHoursData);
+    const allDaysClosed = dates.every(
+      (date) => openingHoursData[date]?.isClosed
+    );
+
+    if (allDaysClosed) {
+      return salon === "Soye-en-Septaine" ? "Flavigny" : "Soye-en-Septaine";
+    }
+    return salon;
+  };
+
   const handleSlotSelect = (date: string, time: string) => {
     setSelectedSlot({ date, time });
     onSelect(date, time);
@@ -143,32 +214,20 @@ export default function WeeklyTimeSlotSelector({
     <div className="mt-6">
       <div className="flex justify-between items-center mb-4">
         <button
-          onClick={() => {
-            const newDate = addDays(startDate, -7);
-            if (
-              !isBefore(newDate, startOfWeek(new Date(), { weekStartsOn: 1 }))
-            ) {
-              setStartDate(newDate);
-            }
-          }}
-          className={`text-green font-bold text-lg ${
-            isBefore(startDate, startOfWeek(new Date(), { weekStartsOn: 1 }))
-              ? "text-gray-300 cursor-not-allowed"
-              : ""
-          }`}
-          disabled={isBefore(
-            startDate,
-            startOfWeek(new Date(), { weekStartsOn: 1 })
-          )}
+          onClick={() => setStartDate(addDays(startDate, -7))}
+          className="text-green font-bold text-lg"
         >
           &larr;
         </button>
-        <h2 className="text-green text-xl font-bold">
-          Semaine du {format(startDate, "dd MMM", { locale: fr })} au{" "}
-          {format(addDays(startDate, 6), "dd MMM", { locale: fr })}
-        </h2>
+        <div className="text-center">
+          <h2 className="text-green text-xl font-bold">
+            Semaine du {format(startDate, "dd MMM", { locale: fr })} au{" "}
+            {format(addDays(startDate, 6), "dd MMM", { locale: fr })}
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">Salon actif : {activeSalon}</p>
+        </div>
         <button
-          onClick={() => setStartDate((date) => addDays(date, 7))}
+          onClick={() => setStartDate(addDays(startDate, 7))}
           className="text-green font-bold text-lg"
         >
           &rarr;
@@ -176,9 +235,7 @@ export default function WeeklyTimeSlotSelector({
       </div>
 
       {loading ? (
-        <p className="text-center text-gray-500 my-4">
-          Chargement des créneaux...
-        </p>
+        <p className="text-center text-gray-500 my-4">Chargement des créneaux...</p>
       ) : error ? (
         <p className="text-center text-red-500 my-4">{error}</p>
       ) : (
@@ -189,9 +246,26 @@ export default function WeeklyTimeSlotSelector({
             const displayDate = format(currentDate, "dd MMM", { locale: fr });
             const slots = weeklyTimeSlots[formattedDate] || [];
             const isCurrentDay = isSameDay(currentDate, new Date());
-            const isPastDay =
-              isBefore(currentDate, new Date()) && !isCurrentDay;
-            const isOpen = openDays[formattedDate];
+            const isPastDay = isBefore(currentDate, new Date()) && !isCurrentDay;
+            const dayHours = openingHours[formattedDate];
+
+            if (!dayHours) {
+              return (
+                <div key={day} className="flex flex-col items-center">
+                  <h3 className="font-semibold text-green mb-2 capitalize">
+                    {day}
+                    <span className="block text-sm text-gray-500">
+                      {displayDate}
+                    </span>
+                  </h3>
+                  <p className="text-center text-gray-400 text-sm">
+                    Aucun horaire défini
+                  </p>
+                </div>
+              );
+            }
+
+            const isClosed = dayHours?.isClosed;
 
             return (
               <div key={day} className="flex flex-col items-center">
@@ -204,7 +278,7 @@ export default function WeeklyTimeSlotSelector({
                 <div className="space-y-1 w-full">
                   {isPastDay ? (
                     <p className="text-center text-gray-400 text-sm">Passé</p>
-                  ) : !isOpen ? (
+                  ) : isClosed ? (
                     <p className="text-center text-red-500 text-sm">Fermé</p>
                   ) : slots.length > 0 ? (
                     slots.map((slot) => {
@@ -212,32 +286,26 @@ export default function WeeklyTimeSlotSelector({
                         selectedSlot?.date === formattedDate &&
                         selectedSlot?.time === slot;
                       const endTime = format(
-                        addMinutes(
-                          parseISO(`${formattedDate}T${slot}`),
-                          effectiveDuration
-                        ),
+                        addMinutes(parseISO(`${formattedDate}T${slot}`), durationInMinutes),
                         "HH:mm"
                       );
 
                       return (
                         <button
                           key={`${formattedDate}-${slot}`}
-                          onClick={() =>
-                            handleSlotSelect(formattedDate, slot)
-                          }
+                          onClick={() => handleSlotSelect(formattedDate, slot)}
                           className={`w-full p-2 text-sm rounded text-center transition-colors ${
                             isSelected
                               ? "bg-green text-white"
                               : "bg-gray-100 hover:bg-gray-200 text-green"
                           }`}
                         >
-                          {slot.replace(":", "h")} -{" "}
-                          {endTime.replace(":", "h")}
+                          {slot.replace(":", "h")} - {endTime.replace(":", "h")}
                         </button>
                       );
                     })
                   ) : (
-                    <p className="text-center text-red-500 text-sm">Fermé</p>
+                    <p className="text-center text-red-500 text-sm">Aucun créneau</p>
                   )}
                 </div>
               </div>
@@ -250,21 +318,12 @@ export default function WeeklyTimeSlotSelector({
         <div className="mt-4 p-4 bg-green/10 rounded">
           <p className="text-green text-center font-semibold">
             Créneau sélectionné :{" "}
-            {format(new Date(selectedSlot.date), "dd/MM/yyyy", {
-              locale: fr,
-            })}{" "}
+            {format(new Date(selectedSlot.date), "dd/MM/yyyy", { locale: fr })}{" "}
             de {selectedSlot.time.replace(":", "h")} à{" "}
             {format(
-              addMinutes(
-                parseISO(`${selectedSlot.date}T${selectedSlot.time}`),
-                effectiveDuration
-              ),
+              addMinutes(parseISO(`${selectedSlot.date}T${selectedSlot.time}`), durationInMinutes),
               "HH:mm"
             ).replace(":", "h")}
-            <br />
-            <span className="text-sm">
-              Durée : {effectiveDuration} minutes
-            </span>
           </p>
         </div>
       )}

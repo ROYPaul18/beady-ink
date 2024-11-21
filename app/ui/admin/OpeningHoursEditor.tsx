@@ -34,46 +34,122 @@ export default function OpeningHoursEditor({
   salon,
 }: OpeningHoursEditorProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [selectedSalon, setSelectedSalon] = useState(salon);
+  const [selectedSalon, setSelectedSalon] = useState<string | null>(null);
   const [selectedWeeks, setSelectedWeeks] = useState<string[]>([]);
   const [hours, setHours] = useState<OpeningHour[]>(initialHours);
   const [isLoading, setIsLoading] = useState(false);
   const [editingType, setEditingType] = useState<"day" | "week" | null>(null);
   const [editingDay, setEditingDay] = useState<string | null>(null);
+  const [isSoyeOpen, setIsSoyeOpen] = useState(false);
+
+  const getCurrentWeekKey = () => {
+    return format(startOfWeek(currentWeek, { weekStartsOn: 1 }), "yyyy-MM-dd");
+  };
 
   useEffect(() => {
-    setSelectedSalon(salon);
-  }, [salon]);
+    const initializeData = async () => {
+      try {
+        const response = await fetch(`/api/opening-hours/weekly`);
+        if (response.ok) {
+          const data = await response.json();
+          const weeks = data.selectedWeeks || [];
+          setSelectedWeeks(weeks);
+
+          // Déterminer le salon ouvert
+          const currentWeekKey = getCurrentWeekKey();
+          const isSoyeWeek = weeks.includes(currentWeekKey);
+          const newSelectedSalon = isSoyeWeek ? "Soye-en-Septaine" : "Flavigny";
+          setSelectedSalon(newSelectedSalon);
+
+          // Charger les horaires du salon ouvert
+          await fetchHoursForWeek(newSelectedSalon);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des semaines :", error);
+      }
+    };
+
+    initializeData();
+  }, []); // Exécuter uniquement au montage du composant
 
   useEffect(() => {
     fetchSelectedWeeks();
-  }, [salon]);
+  }, []);
 
   useEffect(() => {
-    fetchHoursForWeek();
-  }, [currentWeek, selectedSalon]);
+    if (selectedSalon) {
+      fetchHoursForWeek();
+    }
+  }, [currentWeek, selectedSalon, isSoyeOpen]);
+
+  useEffect(() => {
+    const currentWeekKey = getCurrentWeekKey();
+    const isSoyeWeek = selectedWeeks.includes(currentWeekKey);
+    setSelectedSalon(isSoyeWeek ? "Soye-en-Septaine" : "Flavigny");
+  }, [currentWeek, selectedWeeks]);
+
+  useEffect(() => {
+    setSelectedSalon(isSoyeOpen ? "Soye-en-Septaine" : "Flavigny");
+  }, [isSoyeOpen]);
+
+  const checkIfSoyeIsOpen = async () => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
+    const end = endOfWeek(currentWeek, { weekStartsOn: 1 });
+    const dates = eachDayOfInterval({ start, end }).map((date) =>
+      format(date, "yyyy-MM-dd")
+    );
+
+    try {
+      const response = await fetch(
+        `/api/opening-hours?salon=Soye-en-Septaine&dates=${dates.join(",")}`
+      );
+
+      if (response.ok) {
+        const data: { [key: string]: OpeningHour } = await response.json();
+
+        // Vérifier s'il y a au moins un jour où Soye est ouvert
+        const isOpen = Object.values(data).some(
+          (day) => day && !day.isClosed
+        );
+
+        setIsSoyeOpen(isOpen);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la vérification de l'ouverture de Soye :",
+        error
+      );
+    }
+  };
+
+  useEffect(() => {
+    checkIfSoyeIsOpen();
+  }, [currentWeek]);
 
   const fetchSelectedWeeks = async () => {
     try {
-      console.log("Requête API pour récupérer les semaines :", selectedSalon);
-      const response = await fetch(
-        `/api/opening-hours/weekly?salon=${selectedSalon}`
-      );
+      const response = await fetch(`/api/opening-hours/weekly`);
       if (response.ok) {
         const data = await response.json();
-        setSelectedWeeks(data.selectedWeeks || []);
-      } else {
-        console.error(
-          "Erreur lors de la récupération des semaines :",
-          response.statusText
-        );
+        const weeks = data.selectedWeeks || [];
+        setSelectedWeeks(weeks);
+
+        // Mettez à jour selectedSalon après avoir récupéré selectedWeeks
+        const isSoyeWeek = weeks.includes(getCurrentWeekKey());
+        const newSelectedSalon = isSoyeWeek ? "Soye-en-Septaine" : "Flavigny";
+        setSelectedSalon(newSelectedSalon);
+
+        // Appelez fetchHoursForWeek après avoir mis à jour selectedSalon
+        await fetchHoursForWeek(newSelectedSalon);
       }
     } catch (error) {
       console.error("Erreur lors de la récupération des semaines :", error);
     }
   };
 
-  const fetchHoursForWeek = async () => {
+  const fetchHoursForWeek = async (salonToFetch?: string) => {
+    const salon = salonToFetch || (isSoyeOpen ? "Soye-en-Septaine" : "Flavigny");
+
     try {
       const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
       const end = endOfWeek(currentWeek, { weekStartsOn: 1 });
@@ -81,32 +157,29 @@ export default function OpeningHoursEditor({
         format(date, "yyyy-MM-dd")
       );
 
-      console.log(`Requête API pour ${selectedSalon} avec dates :`, dates);
-
       const response = await fetch(
-        `/api/opening-hours?salon=${selectedSalon}&dates=${dates.join(",")}`
+        `/api/opening-hours?salon=${salon}&dates=${dates.join(",")}`
       );
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Données horaires API :", data);
-
+        const data: { [key: string]: OpeningHour } = await response.json();
         setHours(
-          dates.map((date) => ({
-            id: data[date]?.id || null,
-            date: new Date(date),
-            jour: format(new Date(date), "EEEE", { locale: fr }).toLowerCase(), // Ajout de 'jour'
-            salon: selectedSalon,
-            startTime: data[date]?.startTime || "09:00",
-            endTime: data[date]?.endTime || "19:00",
-            isClosed: data[date]?.isClosed || false,
-          }))
+          dates.map((date) => {
+            const jour = format(new Date(date), "EEEE", { locale: fr }).toLowerCase();
+            const isSunday = jour === "dimanche"; // Vérifie si c'est un dimanche
+            return {
+              id: data[date]?.id || null,
+              date: new Date(date),
+              jour,
+              salon: salon,
+              startTime: data[date]?.startTime || "09:00",
+              endTime: data[date]?.endTime || "19:00",
+              isClosed:
+                data[date]?.isClosed !== undefined ? data[date].isClosed : isSunday,
+            };
+          })
         );
-      } else {
-        console.error(
-          "Erreur API lors de la récupération des horaires :",
-          await response.json()
-        );
+        setSelectedSalon(salon);
       }
     } catch (error) {
       console.error("Erreur lors de la récupération des horaires :", error);
@@ -125,10 +198,37 @@ export default function OpeningHoursEditor({
     }));
   };
 
-  const navigateWeek = (direction: "prev" | "next") => {
-    setCurrentWeek((current) =>
-      direction === "prev" ? subWeeks(current, 1) : addWeeks(current, 1)
-    );
+  const navigateWeek = useCallback(
+    async (direction: "prev" | "next") => {
+      const newWeek =
+        direction === "prev"
+          ? subWeeks(currentWeek, 1)
+          : addWeeks(currentWeek, 1);
+
+      setCurrentWeek(newWeek);
+
+      if (selectedWeeks !== null) {
+        const newWeekKey = format(
+          startOfWeek(newWeek, { weekStartsOn: 1 }),
+          "yyyy-MM-dd"
+        );
+
+        const isSoyeWeek = selectedWeeks.includes(newWeekKey);
+
+        // Déterminer le salon ouvert
+        const newSelectedSalon = isSoyeWeek ? "Soye-en-Septaine" : "Flavigny";
+        setSelectedSalon(newSelectedSalon);
+
+        // Charger les horaires du salon ouvert
+        await fetchHoursForWeek(newSelectedSalon);
+      }
+    },
+    [currentWeek, selectedWeeks]
+  );
+
+  const formatTimeTo24Hour = (time: string): string => {
+    const [hour, minute] = time.split(":");
+    return `${hour.padStart(2, "0")}:${minute}`;
   };
 
   const closeModal = () => {
@@ -136,58 +236,77 @@ export default function OpeningHoursEditor({
     setEditingType(null);
   };
 
-  const handleWeekToggle = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      setIsLoading(true);
-      const weekKey = format(
-        startOfWeek(currentWeek, { weekStartsOn: 1 }),
-        "yyyy-MM-dd"
+  const handleWeekToggle = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsLoading(true);
+    const isChecked = event.target.checked;
+  
+    try {
+      // Mettre à jour les horaires de Soye-en-Septaine en conséquence
+      const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
+      const end = endOfWeek(currentWeek, { weekStartsOn: 1 });
+      const dates = eachDayOfInterval({ start, end });
+  
+      // Pour chaque jour de la semaine, mettre à jour l'état d'ouverture
+      await Promise.all(
+        dates.map(async (date) => {
+          const formattedDate = format(date, "yyyy-MM-dd");
+          const jour = format(date, "EEEE", { locale: fr }).toLowerCase();
+  
+          const dataToSend = {
+            salon: "Soye-en-Septaine",
+            jour,
+            date: formattedDate, // Utiliser la date formatée
+            isClosed: !isChecked, // Fermer si décoché, ouvrir si coché
+            startTime: "09:00",
+            endTime: "19:00",
+          };
+  
+          console.log("Données envoyées :", dataToSend);
+  
+          const response = await fetch("/api/opening-hours", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dataToSend),
+          });
+  
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error(
+              "Erreur lors de la mise à jour des horaires :",
+              errorData
+            );
+            throw new Error(
+              `Erreur lors de la mise à jour des horaires : ${errorData.message}`
+            );
+          }
+        })
       );
-      const isChecked = event.target.checked;
-
-      // Mise à jour optimiste de selectedWeeks
-      setSelectedWeeks((prev) =>
-        isChecked ? [...prev, weekKey] : prev.filter((w) => w !== weekKey)
+  
+      // Après la mise à jour, vérifier si Soye est ouvert
+      await checkIfSoyeIsOpen();
+  
+      // Recharger selectedWeeks pour refléter les changements
+      await fetchSelectedWeeks();
+  
+      // Mettre à jour selectedSalon en fonction du nouvel état
+      setSelectedSalon(isChecked ? "Soye-en-Septaine" : "Flavigny");
+  
+      // Recharger les horaires
+      await fetchHoursForWeek();
+    } catch (error) {
+      console.error(
+        "Erreur lors de la bascule de l'ouverture de Soye :",
+        error
       );
-
-      try {
-        const response = await fetch("/api/opening-hours/weekly", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            weekKey,
-            salonSoye: isChecked,
-          }),
-        });
-
-        if (response.ok) {
-          // Si la mise à jour du backend est réussie, met à jour selectedSalon
-          setSelectedSalon(isChecked ? "Soye-en-Septaine" : "Flavigny");
-          await fetchHoursForWeek();
-        } else {
-          console.error(
-            "Erreur API pour la mise à jour :",
-            await response.json()
-          );
-          // En cas d'erreur, revert l'état
-          setSelectedWeeks((prev) =>
-            isChecked ? prev.filter((w) => w !== weekKey) : [...prev, weekKey]
-          );
-        }
-      } catch (error) {
-        console.error("Erreur lors de la bascule de salon :", error);
-        // En cas d'erreur, revert l'état
-        setSelectedWeeks((prev) =>
-          isChecked ? prev.filter((w) => w !== weekKey) : [...prev, weekKey]
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [currentWeek]
-  );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   const saveDayChanges = async () => {
     if (!editingDay) return;
@@ -206,7 +325,7 @@ export default function OpeningHoursEditor({
     };
 
     try {
-      const response = await fetch("/api/opening-hours", {
+      const response = await fetch("/api/opening-hours/", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -216,19 +335,13 @@ export default function OpeningHoursEditor({
 
       if (response.ok) {
         closeModal();
-        fetchHoursForWeek();
+        await fetchHoursForWeek();
       } else {
-        const errorData = await response.json();
-        console.error("Erreur de réponse:", errorData);
+        console.error("Erreur lors de la mise à jour:", await response.json());
       }
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
     }
-  };
-
-  const formatTimeTo24Hour = (time: string): string => {
-    const [hour, minute] = time.split(":");
-    return `${hour.padStart(2, "0")}:${minute}`;
   };
 
   return (
@@ -249,10 +362,7 @@ export default function OpeningHoursEditor({
 
           <span className="text-lg font-medium bg-white rounded-xl text-green p-2">
             Semaine du{" "}
-            {format(
-              startOfWeek(currentWeek, { weekStartsOn: 1 }),
-              "dd/MM/yyyy"
-            )}
+            {format(startOfWeek(currentWeek, { weekStartsOn: 1 }), "dd/MM/yyyy")}
           </span>
 
           <button
@@ -270,12 +380,7 @@ export default function OpeningHoursEditor({
           <input
             type="checkbox"
             id="soye-open"
-            checked={selectedWeeks.includes(
-              format(
-                startOfWeek(currentWeek, { weekStartsOn: 1 }),
-                "yyyy-MM-dd"
-              )
-            )}
+            checked={isSoyeOpen}
             onChange={handleWeekToggle}
             disabled={isLoading}
             className="w-4 h-4 text-green border-gray-300 rounded focus:ring-green"
@@ -291,10 +396,13 @@ export default function OpeningHoursEditor({
 
       <div className="space-y-4">
         {getCurrentWeekDays().map((day) => {
+          const activeSalon = isSoyeOpen ? "Soye-en-Septaine" : "Flavigny";
+
           const dayHours = hours.find(
             (h) =>
-              h.jour.toLowerCase() === day.dayName && h.salon === selectedSalon
+              h.jour.toLowerCase() === day.dayName && h.salon === activeSalon
           );
+
           const isPast =
             isBefore(day.date, new Date()) && !isSameDay(day.date, new Date());
 
@@ -318,18 +426,14 @@ export default function OpeningHoursEditor({
               <div className="flex items-center gap-4">
                 <div
                   className={`px-3 py-1 rounded-full ${
-                    dayHours && dayHours.isClosed
-                      ? "bg-gray-300"
-                      : "bg-green text-white"
+                    dayHours?.isClosed ? "bg-gray-300" : "bg-green text-white"
                   }`}
                 >
-                  {dayHours && dayHours.isClosed ? "Fermé" : "Ouvert"}
+                  {dayHours?.isClosed ? "Fermé" : "Ouvert"}
                 </div>
-                {dayHours && (
-                  <span className="px-3 py-1 rounded-full bg-green text-white">
-                    {dayHours.salon}
-                  </span>
-                )}
+                <span className="px-3 py-1 rounded-full bg-green text-white">
+                  {activeSalon}
+                </span>
                 <button
                   onClick={() => {
                     setEditingDay(day.dayName);
@@ -372,14 +476,14 @@ export default function OpeningHoursEditor({
                   )?.isClosed || false
                 }
                 onChange={(e) =>
-                  setHours((prev) => {
-                    return prev.map((h) =>
+                  setHours((prev) =>
+                    prev.map((h) =>
                       h.jour.toLowerCase() === editingDay &&
                       h.salon === selectedSalon
                         ? { ...h, isClosed: e.target.checked }
                         : h
-                    );
-                  })
+                    )
+                  )
                 }
                 className="mr-2"
               />
@@ -388,29 +492,30 @@ export default function OpeningHoursEditor({
 
             {!hours.find(
               (h) =>
-                h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+                h.jour.toLowerCase() === editingDay &&
+                h.salon === selectedSalon
             )?.isClosed && (
               <>
                 <div className="mb-4">
                   <label className="block mb-2">Heure d'ouverture</label>
                   <input
                     type="time"
-                    value={formatTimeTo24Hour(
+                    value={
                       hours.find(
                         (h) =>
                           h.jour.toLowerCase() === editingDay &&
                           h.salon === selectedSalon
                       )?.startTime || ""
-                    )}
+                    }
                     onChange={(e) =>
-                      setHours((prev) => {
-                        return prev.map((h) =>
+                      setHours((prev) =>
+                        prev.map((h) =>
                           h.jour.toLowerCase() === editingDay &&
                           h.salon === selectedSalon
                             ? { ...h, startTime: e.target.value }
                             : h
-                        );
-                      })
+                        )
+                      )
                     }
                     step="900"
                     className="w-full p-2 border rounded"
@@ -421,22 +526,22 @@ export default function OpeningHoursEditor({
                   <label className="block mb-2">Heure de fermeture</label>
                   <input
                     type="time"
-                    value={formatTimeTo24Hour(
+                    value={
                       hours.find(
                         (h) =>
                           h.jour.toLowerCase() === editingDay &&
                           h.salon === selectedSalon
                       )?.endTime || ""
-                    )}
+                    }
                     onChange={(e) =>
-                      setHours((prev) => {
-                        return prev.map((h) =>
+                      setHours((prev) =>
+                        prev.map((h) =>
                           h.jour.toLowerCase() === editingDay &&
                           h.salon === selectedSalon
                             ? { ...h, endTime: e.target.value }
                             : h
-                        );
-                      })
+                        )
+                      )
                     }
                     step="900"
                     className="w-full p-2 border rounded"

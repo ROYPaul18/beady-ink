@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { formatTime, closeOtherSalonForWeek } from '@/lib/opening-hours-utils';
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, addDays } from "date-fns";
 import { format } from 'date-fns';
 import { fr } from "date-fns/locale";
 
@@ -18,13 +18,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const effectiveStartTime = isClosed ? "" : formatTime(startTime || "09:00");
-    const effectiveEndTime = isClosed ? "" : formatTime(endTime || "19:00");
+    // Vérifiez si un horaire existe déjà pour cette date
+    const existingHour = await db.openingHours.findFirst({
+      where: { salon, date: new Date(date) },
+    });
 
-    // Ferme l'autre salon pour la même semaine si ce salon est ouvert
-    if (!isClosed) {
-      await closeOtherSalonForWeek(salon, date);
+    if (existingHour) {
+      return NextResponse.json(
+        { message: "Un horaire existe déjà pour cette date.", success: false },
+        { status: 400 }
+      );
     }
+
+    const effectiveStartTime = isClosed ? "" : formatTime(startTime || "");
+    const effectiveEndTime = isClosed ? "" : formatTime(endTime || "");
 
     const result = await db.openingHours.create({
       data: {
@@ -50,6 +57,8 @@ export async function POST(req: Request) {
   }
 }
 
+
+
 // PUT : Met à jour un horaire existant pour un jour spécifique
 export async function PUT(req: Request) {
   try {
@@ -58,18 +67,19 @@ export async function PUT(req: Request) {
 
     if (!salon || !jour || !date || isClosed === undefined) {
       return NextResponse.json(
-        { message: "Le salon, jour, date, et isClosed sont requis." },
+        { message: "Le salon, jour, date, et isClosed sont requis.", success: false },
         { status: 400 }
       );
     }
 
     if (id) {
+      // Mettre à jour l'enregistrement existant
       const updatedRecord = await db.openingHours.update({
         where: { id },
         data: {
           isClosed,
-          startTime: isClosed ? '' : startTime,
-          endTime: isClosed ? '' : endTime,
+          startTime: isClosed ? "" : startTime,
+          endTime: isClosed ? "" : endTime,
           updatedAt: new Date(),
         },
       });
@@ -79,44 +89,25 @@ export async function PUT(req: Request) {
         data: updatedRecord,
       });
     } else {
-      const existingRecord = await db.openingHours.findFirst({
-        where: { salon, date: new Date(date) },
+      // Créer une nouvelle entrée si aucune n'existe
+      const newRecord = await db.openingHours.create({
+        data: {
+          salon,
+          jour,
+          startTime: isClosed ? "" : startTime,
+          endTime: isClosed ? "" : endTime,
+          isClosed,
+          date: new Date(date),
+        },
       });
 
-      if (existingRecord) {
-        const updatedRecord = await db.openingHours.update({
-          where: { id: existingRecord.id },
-          data: {
-            isClosed,
-            startTime: isClosed ? '' : startTime,
-            endTime: isClosed ? '' : endTime,
-            updatedAt: new Date(),
-          },
-        });
-
-        return NextResponse.json({
-          success: true,
-          data: updatedRecord,
-        });
-      } else {
-        const newRecord = await db.openingHours.create({
-          data: {
-            salon,
-            jour,
-            startTime: isClosed ? '' : startTime,
-            endTime: isClosed ? '' : endTime,
-            isClosed,
-            date: new Date(date),
-          },
-        });
-
-        return NextResponse.json({
-          success: true,
-          data: newRecord,
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        data: newRecord,
+      });
     }
   } catch (error) {
+    console.error("Erreur lors de la mise à jour des horaires :", error);
     return NextResponse.json(
       { message: "Erreur lors de la mise à jour des horaires", success: false },
       { status: 500 }
@@ -124,7 +115,7 @@ export async function PUT(req: Request) {
   }
 }
 
-
+// GET : Récupère les heures d'ouverture pour des jours spécifiques
 // GET : Récupère les heures d'ouverture pour des jours spécifiques
 export async function GET(req: Request) {
   try {
@@ -140,8 +131,22 @@ export async function GET(req: Request) {
     }
 
     const dates = datesParam.split(",");
+    console.log("Dates demandées:", dates);
+    
+    const currentWeekStart = startOfWeek(new Date(dates[0]), { weekStartsOn: 1 });
 
-    console.log("Récupération des horaires pour :", { salon, dates });
+    // Ne récupère que les horaires qui existent réellement dans la base
+    const salonHours = await db.openingHours.findMany({
+      where: {
+        salon,
+        date: {
+          gte: currentWeekStart,
+          lt: addDays(currentWeekStart, 7)
+        }
+      },
+    });
+
+    console.log("Horaires trouvés pour le salon:", salonHours);
 
     const openingHoursData: {
       [key: string]: {
@@ -152,58 +157,42 @@ export async function GET(req: Request) {
       };
     } = {};
 
+    // Pour chaque date demandée
     for (const date of dates) {
-      const startDate = startOfDay(new Date(date));
-      const endDate = endOfDay(new Date(date));
+      const currentDate = new Date(date);
+      const isSunday = currentDate.getDay() === 0;
 
-      console.log(`Recherche pour ${salon} entre ${startDate} et ${endDate}`);
-
-      // Recherche des horaires dans la base pour chaque date
-      let openingHour = await db.openingHours.findFirst({
-        where: {
-          salon,
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-      });
-
-      if (!openingHour) {
-        console.log(`Aucune entrée trouvée pour ${salon} à la date ${date}. Création d'une entrée par défaut.`);
-
-        const isSunday = new Date(date).getDay() === 0;
-        const isClosed = salon === "Flavigny" || isSunday;
-
-        // Crée une nouvelle entrée dans la base si aucune n'existe
-        openingHour = await db.openingHours.create({
-          data: {
-            salon,
-            jour: format(new Date(date), "eeee", { locale: fr }).toLowerCase(),
-            date: startDate,
-            isClosed,
-            startTime: isClosed ? "" : "09:00",
-            endTime: isClosed ? "" : "19:00",
-          },
-        });
+      // Si c'est un dimanche, ne pas inclure d'horaires du tout
+      if (isSunday) {
+        continue;
       }
 
-      // Ajouter les données au résultat
-      openingHoursData[date] = {
-        id: openingHour.id,
-        isClosed: openingHour.isClosed,
-        startTime: openingHour.startTime || "09:00",
-        endTime: openingHour.endTime || "19:00",
-      };
+      // Pour les autres jours, chercher les horaires existants
+      const dayHours = salonHours.find(
+        h => format(h.date, 'yyyy-MM-dd') === date
+      );
+
+      // Ne retourner des horaires que s'ils existent réellement dans la base
+      if (dayHours) {
+        openingHoursData[date] = {
+          id: dayHours.id,
+          isClosed: dayHours.isClosed,
+          startTime: dayHours.startTime || "",
+          endTime: dayHours.endTime || "",
+        };
+      }
+      // Si pas d'horaires trouvés, ne rien ajouter à openingHoursData
     }
 
-    console.log("Horaires retournés :", openingHoursData);
+    console.log("Horaires envoyés:", openingHoursData);
     return NextResponse.json(openingHoursData);
+
   } catch (error) {
     console.error("Erreur lors de la récupération des horaires :", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }
+
 
 
 
