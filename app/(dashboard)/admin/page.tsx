@@ -72,25 +72,11 @@ export default async function AdminPage() {
     }),
   ]);
 
-  // Transform raw opening hours to include timeSlots
-  const openingHours: OpeningHour[] = [...flavignyHours, ...soyeHours].map((hour) => ({
-    id: hour.id,
-    salon: hour.salon,
-    jour: hour.jour,
-    startTime: hour.startTime,
-    endTime: hour.endTime,
-    date: hour.date,
-    isClosed: hour.isClosed,
-    createdAt: hour.createdAt,
-    updatedAt: hour.updatedAt,
-    weekKey: hour.weekKey,
-    timeSlots: hour.timeSlots || (hour.isClosed ? [] : [
-      {
-        startTime: hour.startTime || "09:00",
-        endTime: hour.endTime || "19:00"
-      }
-    ])
-  }));
+  // Transform raw opening hours to include generalHours and breaks using transformRawOpeningHour
+  const openingHours: OpeningHour[] = [
+    ...flavignyHours.map(transformRawOpeningHour),
+    ...soyeHours.map(transformRawOpeningHour),
+  ];
 
   const prestations = rawPrestations.map((prestation) => ({
     ...prestation,
@@ -151,3 +137,4 @@ export default async function AdminPage() {
     </div>
   );
 }
+

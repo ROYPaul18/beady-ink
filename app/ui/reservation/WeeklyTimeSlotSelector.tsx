@@ -47,40 +47,61 @@ const generateTimeSlots = (
   startTime: string,
   endTime: string,
   durationInMinutes: number,
-  existingBookings: Booking[] = []
+  existingBookings: Booking[] = [],
+  timeSlots: { startTime: string; endTime: string }[] = []  // Pauses passées ici
 ): string[] => {
-  console.log(`Generating slots for ${date}:`, { startTime, endTime, durationInMinutes });
   const slots: string[] = [];
   let current = parseISO(`${date}T${startTime}`);
-  const end = parseISO(`${date}T${endTime}`);
+  const dayEnd = parseISO(`${date}T${endTime}`);
 
-  while (isBefore(current, end)) {
-    const slotEndTime = addMinutes(current, durationInMinutes);
-    if (isBefore(slotEndTime, end) || isSameDay(slotEndTime, end)) {
-      const currentSlotTime = format(current, "HH:mm");
-      
-      // Vérifier si le créneau est disponible
-      const isSlotBooked = existingBookings
-        .filter(booking => booking.date === date)
-        .some(booking => {
-          const bookingStart = parseISO(`${date}T${booking.startTime}`);
-          const bookingEnd = addMinutes(bookingStart, booking.duration);
-          const slotStart = parseISO(`${date}T${currentSlotTime}`);
-          const slotEnd = addMinutes(slotStart, durationInMinutes);
+  // Créer des périodes de disponibilité, excluant les pauses
+  const periods = [];
+  let periodStart = current;
 
-          return (
-            (isBefore(slotStart, bookingEnd) || isSameDay(slotStart, bookingEnd)) &&
-            (isBefore(bookingStart, slotEnd) || isSameDay(bookingStart, slotEnd))
-          );
-        });
-
-      if (!isSlotBooked) {
-        slots.push(currentSlotTime);
-      }
+  // Pour chaque plage de timeSlots, on exclut les pauses
+  timeSlots.forEach((breakTime) => {
+    const breakStart = parseISO(`${date}T${breakTime.startTime}`);
+    const breakEnd = parseISO(`${date}T${breakTime.endTime}`);
+    if (isBefore(periodStart, breakStart)) {
+      periods.push({ start: periodStart, end: breakStart });  // Période avant la pause
     }
-    current = slotEndTime;
-  }
-  
+    periodStart = breakEnd;  // La période commence après la pause
+  });
+
+  // Ajouter la période après la dernière pause jusqu'à la fermeture
+  periods.push({ start: periodStart, end: dayEnd });
+
+  // Générer les créneaux horaires pour chaque période
+  periods.forEach((period) => {
+    let currentSlotStart = period.start;
+    while (isBefore(currentSlotStart, period.end)) {
+      const slotEndTime = addMinutes(currentSlotStart, durationInMinutes);
+      if (isBefore(slotEndTime, period.end) || isSameDay(slotEndTime, period.end)) {
+        const currentSlotTime = format(currentSlotStart, "HH:mm");
+
+        // Vérifier si le créneau est réservé
+        const isSlotBooked = existingBookings
+          .filter((booking) => booking.date === date)
+          .some((booking) => {
+            const bookingStart = parseISO(`${date}T${booking.startTime}`);
+            const bookingEnd = addMinutes(bookingStart, booking.duration);
+            const slotStart = parseISO(`${date}T${currentSlotTime}`);
+            const slotEnd = addMinutes(slotStart, durationInMinutes);
+
+            return (
+              (isBefore(slotStart, bookingEnd) || isSameDay(slotStart, bookingEnd)) &&
+              (isBefore(bookingStart, slotEnd) || isSameDay(bookingStart, slotEnd))
+            );
+          });
+
+        if (!isSlotBooked) {
+          slots.push(currentSlotTime);
+        }
+      }
+      currentSlotStart = slotEndTime;
+    }
+  });
+
   return slots;
 };
 
@@ -174,10 +195,10 @@ export default function WeeklyTimeSlotSelector({
   const processOpeningHours = (dates: string[], data: any, salonName: string) => {
     const newTimeSlots: { [date: string]: string[] } = {};
     const newOpeningHours: { [date: string]: OpeningHour } = {};
-
+  
     dates.forEach((date) => {
       const dayInfo = data[date];
-      
+  
       newOpeningHours[date] = {
         id: dayInfo?.id || null,
         isClosed: dayInfo?.isClosed ?? false,
@@ -185,23 +206,26 @@ export default function WeeklyTimeSlotSelector({
         endTime: dayInfo?.endTime || "",
         salon: salonName,
       };
-
+  
       if (!dayInfo?.isClosed) {
         const slots = generateTimeSlots(
           date,
           dayInfo?.startTime || "",
           dayInfo?.endTime || "",
           durationInMinutes,
-          existingBookings
+          existingBookings,
+          dayInfo?.breaks || []  // On passe les pauses ici
         );
         newTimeSlots[date] = slots;
       } else {
         newTimeSlots[date] = [];
       }
     });
-
+  
     return { newTimeSlots, newOpeningHours };
   };
+  
+  
 
   useEffect(() => {
     const loadSalonData = async () => {

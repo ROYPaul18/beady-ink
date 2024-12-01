@@ -84,12 +84,14 @@ export async function POST(req: Request) {
     );
   }
 }
-
-// PUT : Met à jour un horaire existant pour un jour spécifique
+// PUT : Mise à jour des horaires d'ouverture avec les pauses
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, salon, jour, timeSlots, isClosed, date, startTime, endTime } = body;
+    const { id, salon, jour, startTime, endTime, isClosed, date, timeSlots } = body;
+
+    // Log les données reçues
+    console.log("Données reçues dans PUT:", body);
 
     if (!salon || !jour || !date || isClosed === undefined) {
       return NextResponse.json(
@@ -100,72 +102,75 @@ export async function PUT(req: Request) {
 
     const formattedDate = new Date(date);
     formattedDate.setHours(0, 0, 0, 0);
+
     const weekKey = format(startOfWeek(formattedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
-    // Utiliser une transaction pour gérer les horaires et les plages horaires
+    // Log avant de commencer la transaction
+    console.log(`Mise à jour des horaires pour le salon: ${salon}, jour: ${jour}, date: ${formattedDate}`);
+
     const result = await db.$transaction(async (prisma) => {
-      // Définir les timeSlots par défaut si nécessaire
-      const defaultTimeSlots = [
-        { startTime: "09:00", endTime: "12:00" },
-        { startTime: "14:00", endTime: "19:00" }
-      ];
-
-      const effectiveTimeSlots = timeSlots && timeSlots.length > 0 ? timeSlots : defaultTimeSlots;
-
+      // Mise à jour des horaires généraux
       const openingHours = await prisma.openingHours.upsert({
         where: {
           salon_date: {
             salon: salon,
-            date: formattedDate
-          }
+            date: formattedDate,
+          },
         },
         update: {
           jour: jour.toLowerCase(),
           isClosed: isClosed,
-          startTime: isClosed ? "" : startTime || effectiveTimeSlots[0].startTime,
-          endTime: isClosed ? "" : endTime || effectiveTimeSlots[effectiveTimeSlots.length - 1].endTime,
-          weekKey: weekKey,
-          updatedAt: new Date()
+          startTime: isClosed ? "" : startTime,
+          endTime: isClosed ? "" : endTime,
+          updatedAt: new Date(),
         },
         create: {
           salon: salon,
           jour: jour.toLowerCase(),
           date: formattedDate,
           isClosed: isClosed,
-          startTime: isClosed ? "" : startTime || effectiveTimeSlots[0].startTime,
-          endTime: isClosed ? "" : endTime || effectiveTimeSlots[effectiveTimeSlots.length - 1].endTime,
-          weekKey: weekKey
-        }
+          startTime: isClosed ? "" : startTime,
+          endTime: isClosed ? "" : endTime,
+        },
       });
 
-      // Gérer les timeSlots
+      // Log après la mise à jour des horaires d'ouverture
+      console.log("Horaires d'ouverture mis à jour :", openingHours);
+
+      // Si le salon n'est pas fermé, mettez à jour les créneaux horaires
       if (!isClosed) {
-        // Supprimer les anciennes plages horaires
+        // Supprimer les anciens créneaux horaires
+        console.log("Suppression des anciens créneaux horaires...");
         await prisma.timeSlot.deleteMany({
-          where: { openingHoursId: openingHours.id }
+          where: { openingHoursId: openingHours.id },
         });
 
-        // Créer les nouvelles plages horaires
-        await prisma.timeSlot.createMany({
-          data: effectiveTimeSlots.map((slot: TimeSlot) => ({
-            openingHoursId: openingHours.id,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            isAvailable: true
-          }))
-        });
+        // Ajouter de nouveaux créneaux horaires pour les pauses
+        if (timeSlots) {
+          console.log("Ajout des nouveaux créneaux horaires...");
+          await prisma.timeSlot.createMany({
+            data: timeSlots.map((slot: TimeSlot) => ({
+              openingHoursId: openingHours.id,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              isAvailable: true,
+            })),
+          });
+        }
       }
 
-      // Récupérer les horaires mis à jour avec les plages horaires
       return prisma.openingHours.findUnique({
         where: { id: openingHours.id },
-        include: { timeSlots: true }
+        include: { timeSlots: true },
       });
     });
 
+    // Log après la transaction réussie
+    console.log("Mise à jour terminée avec succès :", result);
+
     return NextResponse.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error("Erreur lors de la mise à jour des horaires :", error);
@@ -175,6 +180,9 @@ export async function PUT(req: Request) {
     );
   }
 }
+
+
+
 
 // GET : Récupère les heures d'ouverture pour des jours spécifiques
 export async function GET(req: Request) {

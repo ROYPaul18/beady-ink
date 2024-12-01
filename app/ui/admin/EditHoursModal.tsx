@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
 import {
@@ -22,6 +20,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
     (h) => h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
   );
 
+  // Fonction utilitaire pour convertir une heure en minutes
   const timeToMinutes = (time: string): number => {
     if (!time) return 0;
     const [hours, minutes] = time.split(':').map(Number);
@@ -81,46 +80,38 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
     return true;
   };
 
-  const updateGeneralHours = (field: "startTime" | "endTime", value: string) => {
-    if (!value) return;
-    
-    console.log("Updating general hours:", { field, value });
+  // Mise à jour des heures d'ouverture
+  const updateStartTime = (value: string) => {
+    // Assurez-vous que la valeur n'est jamais undefined ni null
+    const updatedStartTime = value || "09:00"; // Valeur par défaut en cas de valeur manquante
     setHours((prev) =>
-      prev.map((h) => {
-        if (h.jour.toLowerCase() === editingDay && h.salon === selectedSalon) {
-          const newGeneralHours = {
-            ...h.generalHours,
-            [field]: value
-          };
+      prev.map((h) =>
+        h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+          ? { ...h, startTime: updatedStartTime }
+          : h
+      )
+    );
+  };
 
-          if (!isTimeRangeValid(newGeneralHours)) {
-            alert("L'heure de fermeture doit être après l'heure d'ouverture");
-            return h;
-          }
-
-          const validBreaks = (h.breaks || []).filter(breakRange => 
-            timeToMinutes(breakRange.startTime) >= timeToMinutes(newGeneralHours.startTime) &&
-            timeToMinutes(breakRange.endTime) <= timeToMinutes(newGeneralHours.endTime)
-          );
-
-          return {
-            ...h,
-            generalHours: newGeneralHours,
-            breaks: validBreaks
-          };
-        }
-        return h;
-      })
+  // Mise à jour de l'heure de fermeture
+  const updateEndTime = (value: string) => {
+    const updatedEndTime = value || "19:00"; // Valeur par défaut en cas de valeur manquante
+    setHours((prev) =>
+      prev.map((h) =>
+        h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+          ? { ...h, endTime: updatedEndTime }
+          : h
+      )
     );
   };
 
   const addBreak = () => {
-    if (!currentHours?.generalHours?.startTime) return;
+    if (!currentHours?.startTime) return;
 
     setHours((prev) =>
       prev.map((h) => {
         if (h.jour.toLowerCase() === editingDay && h.salon === selectedSalon) {
-          const startTime = h.generalHours?.startTime || "09:00";
+          const startTime = h.startTime || "09:00";
           return {
             ...h,
             breaks: [...(h.breaks || []), {
@@ -153,9 +144,9 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
     value: string
   ) => {
     if (!value) return;
-    
+
     console.log("Updating break:", { index, field, value });
-    
+
     setHours((prev) =>
       prev.map((h) => {
         if (h.jour.toLowerCase() === editingDay && h.salon === selectedSalon) {
@@ -166,11 +157,6 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
           };
 
           console.log("New breaks after update:", newBreaks);
-
-          if (!areBreaksValid(newBreaks, h.generalHours)) {
-            alert("Cette plage horaire n'est pas valide (chevauchement ou hors horaires d'ouverture)");
-            return h;
-          }
 
           return {
             ...h,
@@ -183,13 +169,14 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
   };
 
   useEffect(() => {
-    if (!currentHours?.isClosed && (!currentHours?.generalHours || !currentHours?.breaks)) {
+    if (!currentHours?.isClosed && (!currentHours?.startTime || !currentHours?.endTime)) {
       setHours((prev) =>
         prev.map((h) =>
           h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
             ? {
                 ...h,
-                generalHours: h.generalHours || { startTime: "09:00", endTime: "19:00" },
+                startTime: h.startTime || "09:00", // Valeur par défaut
+                endTime: h.endTime || "19:00",   // Valeur par défaut
                 breaks: h.breaks || [{ startTime: "12:00", endTime: "14:00" }]
               }
             : h
@@ -235,31 +222,31 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
             <span className="text-sm">Fermé</span>
           </label>
 
-          {!currentHours?.isClosed && currentHours?.generalHours && (
+          {!currentHours?.isClosed && currentHours?.startTime && currentHours?.endTime && (
             <div className="space-y-6">
               <div className="border p-4 rounded-lg">
                 <h4 className="font-medium mb-3">Horaires d'ouverture</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm mb-1">
-                      Ouverture : {formatFrenchTime(currentHours.generalHours.startTime)}
+                      Ouverture : {currentHours.startTime}
                     </label>
                     <input
                       type="time"
-                      value={currentHours.generalHours.startTime}
-                      onChange={(e) => updateGeneralHours("startTime", e.target.value)}
+                      value={currentHours.startTime}
+                      onChange={(e) => updateStartTime(e.target.value)}
                       className="w-full p-2 text-sm border rounded"
                       step="300"
                     />
                   </div>
                   <div>
                     <label className="block text-sm mb-1">
-                      Fermeture : {formatFrenchTime(currentHours.generalHours.endTime)}
+                      Fermeture : {currentHours.endTime}
                     </label>
                     <input
                       type="time"
-                      value={currentHours.generalHours.endTime}
-                      onChange={(e) => updateGeneralHours("endTime", e.target.value)}
+                      value={currentHours.endTime}
+                      onChange={(e) => updateEndTime(e.target.value)}
                       className="w-full p-2 text-sm border rounded"
                       step="300"
                     />
@@ -290,7 +277,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm mb-1">
-                            Début : {formatFrenchTime(breakRange.startTime)}
+                            Début : {breakRange.startTime}
                           </label>
                           <input
                             type="time"
@@ -302,7 +289,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
                         </div>
                         <div>
                           <label className="block text-sm mb-1">
-                            Fin : {formatFrenchTime(breakRange.endTime)}
+                            Fin : {breakRange.endTime}
                           </label>
                           <input
                             type="time"

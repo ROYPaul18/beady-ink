@@ -141,7 +141,6 @@ export interface RawOpeningHour extends BaseOpeningHour {
 
 export interface OpeningHour extends BaseOpeningHour {
   id?: number | null;
-  generalHours: TimeRange; // Horaires généraux
   breaks: Break[];         // Pauses
   timeSlots: TimeSlot[];   // Créneaux horaires
   startTime?: string | null; // Ajoutez ces propriétés
@@ -201,10 +200,6 @@ export const transformRawOpeningHour = (raw: RawOpeningHour): OpeningHour => {
     date: raw.date,
     isClosed: raw.isClosed,
     weekKey: raw.weekKey,
-    generalHours: {
-      startTime: raw.startTime || "09:00",
-      endTime: raw.endTime || "19:00",
-    },
     breaks: raw.isClosed ? [] : [defaultBreak],
     timeSlots: defaultTimeSlots,
   };
