@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TattooRequestWithUser, FlashTattooRequestWithUser } from "@/lib/types"; // Assurez-vous d'importer les types
+import { TattooRequestWithUser, FlashTattooRequestWithUser } from "@/lib/types";
 import { saveAs } from "file-saver";
 
 interface TattooRequestsProps {
@@ -13,138 +13,136 @@ export default function TattooRequests({
   tattooRequests,
   flashTattooRequests,
 }: TattooRequestsProps) {
-  const [activeTab, setActiveTab] = useState<"tattoo" | "flashTattoo">(
-    "tattoo"
-  );
-
-  // Fonction pour générer et télécharger le CSV des données de santé
+  const [activeTab, setActiveTab] = useState<"tattoo" | "flashTattoo">("tattoo");
 
   const downloadHealthDataCSV = (
     healthData: { [key: string]: string },
     userName: string
   ) => {
-    // Create CSV content with each question and answer in separate columns
     const csvContent = Object.entries(healthData)
       .map(([question, answer]) => `"${question}","${answer}"`)
-      .join("\n"); // Join each line for CSV format
-
-    // Convert the content to a Blob
+      .join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
-    // Save the file with a specified filename
     saveAs(blob, `${userName}_questionnaire_sante.csv`);
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <h2 className="text-2xl md:text-3xl font-semibold text-green mb-4">
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 min-h-[40vh]">
+      <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-green mb-4">
         Liste des Demandes de Tatouage
       </h2>
 
-      {/* Onglets pour basculer entre les demandes de tatouage classique et de flash tattoo */}
-      <div className="mb-4">
+      {/* Tabs - Full width on mobile, auto on desktop */}
+      <div className="grid grid-cols-2 gap-2 mb-4 md:flex md:gap-4">
         <button
-          className={`px-4 py-2 mr-2 rounded ${
+          className={`px-3 py-2 md:px-4 md:py-2 text-sm md:text-base rounded transition-colors ${
             activeTab === "tattoo"
               ? "bg-green text-white"
-              : "bg-gray-300 hover:bg-green hover:text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-green/20"
           }`}
           onClick={() => setActiveTab("tattoo")}
         >
           Demandes de Tatouage
         </button>
         <button
-          className={`px-4 py-2 rounded ${
+          className={`px-3 py-2 md:px-4 md:py-2 text-sm md:text-base rounded transition-colors ${
             activeTab === "flashTattoo"
               ? "bg-green text-white"
-              : "bg-gray-300 hover:bg-green hover:text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-green/20"
           }`}
           onClick={() => setActiveTab("flashTattoo")}
         >
-          Demandes de Flash Tattoo
+          Flash Tattoo
         </button>
       </div>
 
-      {/* Afficher les demandes en fonction de l'onglet sélectionné */}
+      {/* Request Lists */}
       {activeTab === "tattoo" ? (
-        <div>
-          <ul>
-            {tattooRequests.map((request) => (
-              <li
-                key={request.id}
-                className="bg-white border-b border-gray-200 p-6 shadow-md rounded mb-4 text-green"
-              >
-                <p>
-                  <strong>Nom :</strong> {request.user.nom}
-                </p>
-                <p>
-                  <strong>Téléphone :</strong> {request.user.phone}
-                </p>
-                <p>
-                  <strong>Disponibilité :</strong> {request.availability}
-                </p>
-                <p>
-                  <strong>Taille :</strong> {request.size}
-                </p>
-                <p>
-                  <strong>Emplacement :</strong> {request.placement}
-                </p>
-                <p>
-                  <strong>Images de référence :</strong>{" "}
-                </p>
-                <div className="mt-2">
-                  {/* Display reference images */}
-                  {request.referenceImages.map((imgUrl, idx) => (
-                    <img
-                      key={idx}
-                      src={imgUrl}
-                      alt={`Tattoo reference ${idx + 1}`}
-                      className="w-32 h-32 object-cover"
-                    />
-                  ))}
+        <div className="space-y-4">
+          {tattooRequests.map((request) => (
+            <div
+              key={request.id}
+              className="bg-white rounded-lg shadow-md p-4 md:p-6 text-sm md:text-base"
+            >
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <p>
+                    <span className="font-medium">Nom :</span> {request.user.nom}
+                  </p>
+                  <p>
+                    <span className="font-medium">Téléphone :</span> {request.user.phone}
+                  </p>
                 </div>
-                {/* Bouton pour télécharger le CSV */}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <p>
+                    <span className="font-medium">Disponibilité :</span> {request.availability}
+                  </p>
+                  <p>
+                    <span className="font-medium">Taille :</span> {request.size}
+                  </p>
+                </div>
+                
+                <p>
+                  <span className="font-medium">Emplacement :</span> {request.placement}
+                </p>
+
+                {request.referenceImages.length > 0 && (
+                  <div className="mt-3">
+                    <p className="font-medium mb-2">Images de référence :</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {request.referenceImages.map((imgUrl, idx) => (
+                        <img
+                          key={idx}
+                          src={imgUrl}
+                          alt={`Référence ${idx + 1}`}
+                          className="w-full h-32 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <button
-                  onClick={() =>
-                    downloadHealthDataCSV(request.healthData, request.user.nom)
-                  }
-                  className="mt-4 px-4 py-2 bg-green text-white rounded hover:bg-green-600 transition-colors"
+                  onClick={() => downloadHealthDataCSV(request.healthData, request.user.nom)}
+                  className="w-full md:w-auto mt-4 px-4 py-2 text-sm md:text-base bg-green text-white rounded hover:bg-green/90 transition-colors"
                 >
-                  Télécharger le Questionnaire Santé
+                  Télécharger le Questionnaire
                 </button>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
-        <div>
-          <ul>
-            {flashTattooRequests.map((request) => (
-              <li
-                key={request.id}
-                className="bg-white border-b border-gray-200 p-6 shadow-md rounded mb-4 text-green"
-              >
+        <div className="space-y-4">
+          {flashTattooRequests.map((request) => (
+            <div
+              key={request.id}
+              className="bg-white rounded-lg shadow-md p-4 md:p-6 text-sm md:text-base"
+            >
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <p>
+                    <span className="font-medium">Nom :</span> {request.user.nom}
+                  </p>
+                  <p>
+                    <span className="font-medium">Téléphone :</span> {request.user.phone}
+                  </p>
+                </div>
+                
                 <p>
-                  <strong>Nom :</strong> {request.user.nom}
-                </p>
-                <p>
-                  <strong>Téléphone :</strong> {request.user.phone}
-                </p>
-                <p>
-                  <strong>Flash Tattoo ID :</strong> {request.flashTattooId}
+                  <span className="font-medium">Flash Tattoo ID :</span> {request.flashTattooId}
                 </p>
 
                 <button
-                  onClick={() =>
-                    downloadHealthDataCSV(request.healthData, request.user.nom)
-                  }
-                  className="mt-4 px-4 py-2 bg-green text-white rounded hover:bg-green-600 transition-colors"
+                  onClick={() => downloadHealthDataCSV(request.healthData, request.user.nom)}
+                  className="w-full md:w-auto mt-4 px-4 py-2 text-sm md:text-base bg-green text-white rounded hover:bg-green/90 transition-colors"
                 >
-                  Télécharger le Questionnaire Santé
+                  Télécharger le Questionnaire
                 </button>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

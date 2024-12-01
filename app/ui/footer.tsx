@@ -43,7 +43,7 @@ export default function Footer() {
             <p>© 2024 Beaudy Ink</p>
             <span className="hidden sm:inline">|</span>
             <Link
-              href="/"
+              href="/mentions"
               className="underline hover:text-gray-200 transition-colors"
             >
               Mentions légales

@@ -27,7 +27,7 @@ const FlashTattooGallery: React.FC<FlashTattooGalleryProps> = ({ prestations }) 
 
   // Vérifie que les prestations existent et ont des éléments
   if (!prestations || prestations.length === 0) {
-    return <div className="text-center text-gray-500">Aucun flash tattoo disponible.</div>;
+    return <div className="text-center text-white">Aucun flash tattoo disponible.</div>;
   }
 
   return (

@@ -1,6 +1,8 @@
-// lib/types.ts
 import { ServiceType, OnglerieCategory } from "@prisma/client";
+import { Dispatch, SetStateAction } from "react";
+import type { ForwardedRef } from 'react';
 
+// Prestations Types
 export interface Prestation {
   id: number;
   name: string;
@@ -8,7 +10,7 @@ export interface Prestation {
   description: string;
   price: number;
   serviceId: number;
-  category?: OnglerieCategory | null; // La propriété est optionnelle
+  category?: OnglerieCategory | null;
   images: { id: number; url: string; prestationId: number }[];
   createdAt: Date;
   updatedAt: Date;
@@ -22,11 +24,11 @@ export interface PrestationWithImages {
   price: number;
   serviceId: number;
   category?: OnglerieCategory | null;
-  images: { 
-    url: string; 
-    id: number; 
-    createdAt: Date; 
-    prestationId: number; 
+  images: {
+    url: string;
+    id: number;
+    createdAt: Date;
+    prestationId: number;
   }[];
   service: {
     id: number;
@@ -50,6 +52,7 @@ export type PrestationFormData = {
   category?: OnglerieCategory;
 };
 
+// Service Types
 export type Service = {
   id: number;
   createdAt: Date;
@@ -63,6 +66,7 @@ export type ServiceFormData = {
   type: string;
 };
 
+// Reservation Types
 export interface ReservationWithUser {
   id: number;
   date: Date;
@@ -77,7 +81,8 @@ export interface ReservationWithUser {
   createdAt: Date;
   updatedAt: Date;
 }
-// lib/types.ts
+
+// Flash Tattoo Types
 export interface FlashTattooRequestWithUser {
   id: number;
   healthData: { [key: string]: string };
@@ -88,20 +93,7 @@ export interface FlashTattooRequestWithUser {
   flashTattooId: number;
 }
 
-
-export interface OpeningHour {
-  id: number;
-  salon: string;
-  jour: string;
-  startTime: string | null;
-  endTime: string | null;
-  date: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  isClosed: boolean;
-}
-
-
+// Tattoo Request Types
 export interface TattooRequestWithUser {
   id: number;
   availability: string;
@@ -113,4 +105,135 @@ export interface TattooRequestWithUser {
     nom: string;
     phone: string;
   };
+}
+
+// Opening Hours Types
+export interface TimeRange {
+  startTime: string;
+  endTime: string;
+}
+
+export interface TimeSlot extends TimeRange {
+  id?: number;
+  isAvailable?: boolean;
+  openingHoursId?: number;
+}
+
+export interface Break extends TimeRange {
+  id?: number;
+}
+
+export interface BaseOpeningHour {
+  salon: string;
+  jour: string;
+  date: Date;
+  isClosed: boolean;
+  weekKey?: string | null;
+}
+
+export interface RawOpeningHour extends BaseOpeningHour {
+  id: number;
+  startTime: string | null;
+  endTime: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OpeningHour extends BaseOpeningHour {
+  id?: number | null;
+  generalHours: TimeRange; // Horaires généraux
+  breaks: Break[];         // Pauses
+  timeSlots: TimeSlot[];   // Créneaux horaires
+  startTime?: string | null; // Ajoutez ces propriétés
+  endTime?: string | null;   // pour correspondre au code.
+}
+
+
+// Component Props Types
+export interface OpeningHoursEditorProps {
+  initialHours: OpeningHour[];
+  salon: string;
+}
+
+export interface EditHoursModalProps {
+  editingDay: string | null;
+  getCurrentWeekDays: () => WeekDay[];
+  hours: OpeningHour[];
+  setHours: Dispatch<SetStateAction<OpeningHour[]>>;
+  closeModal: () => void;
+  saveDayChanges: () => Promise<void>;
+  selectedSalon: string | null;
+}
+
+export interface WeekDay {
+  date: Date;
+  formattedDate: string;
+  dayName: string;
+  weekKey: string;
+}
+
+// Utility Functions
+export const transformRawOpeningHour = (raw: RawOpeningHour): OpeningHour => {
+  const defaultTimeSlots: TimeSlot[] = raw.isClosed
+    ? []
+    : [
+        {
+          startTime: "09:00",
+          endTime: "12:00",
+          isAvailable: true,
+        },
+        {
+          startTime: "14:00",
+          endTime: "19:00",
+          isAvailable: true,
+        },
+      ];
+
+  const defaultBreak: Break = {
+    startTime: "12:00",
+    endTime: "14:00",
+  };
+
+  return {
+    id: raw.id,
+    salon: raw.salon,
+    jour: raw.jour,
+    date: raw.date,
+    isClosed: raw.isClosed,
+    weekKey: raw.weekKey,
+    generalHours: {
+      startTime: raw.startTime || "09:00",
+      endTime: raw.endTime || "19:00",
+    },
+    breaks: raw.isClosed ? [] : [defaultBreak],
+    timeSlots: defaultTimeSlots,
+  };
+};
+
+// Helper Types
+export type WeeklyAvailability = {
+  [key: string]: OpeningHour[];
+};
+
+export type OpeningHoursApiResponse = {
+  [date: string]: RawOpeningHour;
+};
+
+export type WeeklyOpeningHoursResponse = {
+  selectedWeeks: string[];
+  openingHours: OpeningHoursApiResponse;
+};
+
+export interface WeeklyTimeSlotSelectorProps {
+  salon: string;
+  durationInMinutes: number;
+  onSelect: (date: string, time: string) => void;
+}
+
+export interface WeeklyTimeSlotSelectorRef {
+  refreshTimeSlots: () => void;
+}
+
+export interface WeeklyTimeSlotSelectorComponentProps extends WeeklyTimeSlotSelectorProps {
+  ref?: ForwardedRef<WeeklyTimeSlotSelectorRef>;
 }

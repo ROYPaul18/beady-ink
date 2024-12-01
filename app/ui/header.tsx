@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,7 +25,7 @@ const Header = () => {
   const getBackgroundImage = () => {
     if (pathname === '/tatouage' || pathname === '/tattoo' || pathname === '/reservation/tatouage' || pathname === '/reservation/flashtattoo') {
       return '/img/bg-fleur.jpg';
-    } else { 
+    } else {
       return '/img/bg-feuille.jpg';
     }
   };
@@ -87,14 +87,15 @@ const Header = () => {
         </button>
       </div>
 
+      {/* Menu de navigation */}
       <nav
         className={`${
           menuOpen
-            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center pt-20 bg-cover bg-center'
+            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-cover bg-center'
             : 'hidden'
         } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}
       >
-        <div className="flex flex-col items-center lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20">
+        <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20">
           <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/" onClick={closeMenu}>
               Accueil
@@ -117,7 +118,7 @@ const Header = () => {
           </h1>
         </div>
 
-        <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4 relative">
+        <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-4 lg:absolute lg:right-4 relative">
           <div className="relative">
             <button onClick={toggleDropdown} aria-label="Ouvrir le menu utilisateur">
               <svg
@@ -140,7 +141,7 @@ const Header = () => {
               <div className="absolute top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 z-50 w-48">
                 <ul className="flex flex-col text-center space-y-4">
                   {!isAuthenticated && (
-                    <li >
+                    <li>
                       <Link
                         href="/sign-up"
                         onClick={() => {
@@ -154,7 +155,7 @@ const Header = () => {
                     </li>
                   )}
 
-                  <li className='hover:bg-green hover:text-white'>
+                  <li className="hover:bg-green hover:text-white">
                     {isAuthenticated ? (
                       <button
                         onClick={() => {
@@ -185,14 +186,14 @@ const Header = () => {
                   </li>
 
                   {isAdmin && (
-                    <li className='hover:bg-green hover:text-white'>
+                    <li className="hover:bg-green hover:text-white">
                       <Link
                         href="/admin"
                         onClick={() => {
                           closeDropdown();
                           closeMenu();
                         }}
-                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:text-white  transition-all"
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:text-white transition-all"
                       >
                         Mon dashboard
                       </Link>
@@ -200,7 +201,7 @@ const Header = () => {
                   )}
 
                   {isAuthenticated && (
-                    <li className='hover:bg-green hover:text-white'>
+                    <li className="hover:bg-green hover:text-white">
                       <Link
                         href="/profile"
                         onClick={() => {

@@ -26,6 +26,12 @@ interface OpeningHour {
   salon: string;
 }
 
+interface Booking {
+  date: string;
+  startTime: string;
+  duration: number;
+}
+
 const daysOfWeek = [
   "lundi",
   "mardi",
@@ -36,18 +42,14 @@ const daysOfWeek = [
   "dimanche",
 ];
 
-const getDatesString = (startDate: Date): string => {
-  return daysOfWeek
-    .map((_, i) => format(addDays(startDate, i), "yyyy-MM-dd"))
-    .join(",");
-};
-
 const generateTimeSlots = (
   date: string,
   startTime: string,
   endTime: string,
-  durationInMinutes: number
+  durationInMinutes: number,
+  existingBookings: Booking[] = []
 ): string[] => {
+  console.log(`Generating slots for ${date}:`, { startTime, endTime, durationInMinutes });
   const slots: string[] = [];
   let current = parseISO(`${date}T${startTime}`);
   const end = parseISO(`${date}T${endTime}`);
@@ -55,33 +57,31 @@ const generateTimeSlots = (
   while (isBefore(current, end)) {
     const slotEndTime = addMinutes(current, durationInMinutes);
     if (isBefore(slotEndTime, end) || isSameDay(slotEndTime, end)) {
-      slots.push(format(current, "HH:mm"));
+      const currentSlotTime = format(current, "HH:mm");
+      
+      // Vérifier si le créneau est disponible
+      const isSlotBooked = existingBookings
+        .filter(booking => booking.date === date)
+        .some(booking => {
+          const bookingStart = parseISO(`${date}T${booking.startTime}`);
+          const bookingEnd = addMinutes(bookingStart, booking.duration);
+          const slotStart = parseISO(`${date}T${currentSlotTime}`);
+          const slotEnd = addMinutes(slotStart, durationInMinutes);
+
+          return (
+            (isBefore(slotStart, bookingEnd) || isSameDay(slotStart, bookingEnd)) &&
+            (isBefore(bookingStart, slotEnd) || isSameDay(bookingStart, slotEnd))
+          );
+        });
+
+      if (!isSlotBooked) {
+        slots.push(currentSlotTime);
+      }
     }
     current = slotEndTime;
   }
+  
   return slots;
-};
-
-const generateTimeSlotsFromData = (
-  data: { [key: string]: OpeningHour },
-  duration: number
-): { [key: string]: string[] } => {
-  const timeSlots: { [key: string]: string[] } = {};
-
-  Object.entries(data).forEach(([date, openingHour]) => {
-    if (!openingHour.isClosed) {
-      timeSlots[date] = generateTimeSlots(
-        date,
-        openingHour.startTime,
-        openingHour.endTime,
-        duration
-      );
-    } else {
-      timeSlots[date] = []; // Salon fermé : aucun créneau
-    }
-  });
-
-  return timeSlots;
 };
 
 export default function WeeklyTimeSlotSelector({
@@ -105,105 +105,142 @@ export default function WeeklyTimeSlotSelector({
     time: string;
   } | null>(null);
   const [activeSalon, setActiveSalon] = useState<string>(salon);
+  const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
+
+  const getAlternateSalon = (currentSalon: string) => {
+    return currentSalon === "Soye-en-Septaine" ? "Flavigny" : "Soye-en-Septaine";
+  };
+
+  const fetchBookings = async (targetSalon: string, dates: string[]) => {
+  try {
+    const response = await fetch(
+      `/api/reservation/onglerie?salon=${encodeURIComponent(targetSalon)}&dates=${dates.join(",")}`
+    );
+    if (!response.ok) return [];
+    
+    const data = await response.json();
+    // Transformer les données pour qu'elles correspondent au format attendu
+    return data.map((reservation: any) => ({
+      date: format(new Date(reservation.date), 'yyyy-MM-dd'),
+      startTime: format(new Date(reservation.date), 'HH:mm'),
+      duration: parseInt(reservation.time)
+    }));
+  } catch (error) {
+    console.error("Erreur lors de la récupération des réservations:", error);
+    return [];
+  }
+};
+
+  const fetchSalonData = async (targetSalon: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const dates = daysOfWeek.map((_, i) =>
+        format(addDays(startDate, i), "yyyy-MM-dd")
+      );
+
+      console.log("==== FETCH SALON DATA ====");
+      console.log("Salon cible:", targetSalon);
+      console.log("Dates demandées:", dates);
+
+      // Récupérer les réservations existantes
+      const bookings = await fetchBookings(targetSalon, dates);
+      setExistingBookings(bookings);
+
+      const url = `/api/opening-hours?salon=${encodeURIComponent(
+        targetSalon
+      )}&dates=${dates.join(",")}`;
+      console.log("URL appelée:", url);
+
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      console.log("Réponse de l'API pour", targetSalon, ":");
+      console.log(JSON.stringify(data, null, 2));
+      console.log("=========================");
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des horaires");
+      }
+
+      return { dates, data };
+    } catch (err) {
+      console.error("Erreur détaillée pour", targetSalon, ":", err);
+      throw err;
+    }
+  };
+
+  const processOpeningHours = (dates: string[], data: any, salonName: string) => {
+    const newTimeSlots: { [date: string]: string[] } = {};
+    const newOpeningHours: { [date: string]: OpeningHour } = {};
+
+    dates.forEach((date) => {
+      const dayInfo = data[date];
+      
+      newOpeningHours[date] = {
+        id: dayInfo?.id || null,
+        isClosed: dayInfo?.isClosed ?? false,
+        startTime: dayInfo?.startTime || "",
+        endTime: dayInfo?.endTime || "",
+        salon: salonName,
+      };
+
+      if (!dayInfo?.isClosed) {
+        const slots = generateTimeSlots(
+          date,
+          dayInfo?.startTime || "",
+          dayInfo?.endTime || "",
+          durationInMinutes,
+          existingBookings
+        );
+        newTimeSlots[date] = slots;
+      } else {
+        newTimeSlots[date] = [];
+      }
+    });
+
+    return { newTimeSlots, newOpeningHours };
+  };
 
   useEffect(() => {
-    const fetchOpeningHoursAndSlots = async () => {
-      setLoading(true);
-      setError(null);
-
+    const loadSalonData = async () => {
       try {
-        const dates = daysOfWeek.map((_, i) =>
-          format(addDays(startDate, i), "yyyy-MM-dd")
+        const { dates, data } = await fetchSalonData(salon);
+        const { newTimeSlots, newOpeningHours } = processOpeningHours(dates, data, salon);
+
+        const allDaysClosed = Object.values(newOpeningHours).every(
+          (day) => day.isClosed
         );
 
-        const response = await fetch(
-          `/api/opening-hours?salon=${encodeURIComponent(
-            salon
-          )}&dates=${dates.join(",")}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des horaires");
-        }
-
-        const data = await response.json();
-        const newTimeSlots: { [date: string]: string[] } = {};
-        const newOpeningHours: { [date: string]: OpeningHour } = {};
-
-        dates.forEach((date) => {
-          const dayInfo = data[date];
-
-          newOpeningHours[date] = {
-            id: dayInfo?.id || null,
-            isClosed: dayInfo?.isClosed ?? false,
-            startTime: dayInfo?.startTime || "",
-            endTime: dayInfo?.endTime || "",
-            salon: salon,
-          };
-
-          // Générer des créneaux uniquement si le salon est ouvert
-          if (!dayInfo?.isClosed) {
-            newTimeSlots[date] = generateTimeSlots(
-              date,
-              dayInfo?.startTime || "",
-              dayInfo?.endTime || "",
-              durationInMinutes
-            );
-          } else {
-            newTimeSlots[date] = [];
-          }
-        });
-
-        setOpeningHours(newOpeningHours);
-        setWeeklyTimeSlots(newTimeSlots);
-
-        // Déterminer et mettre à jour le salon actif
-        const activeSalon = determineActiveSalon(newOpeningHours);
-        setActiveSalon(activeSalon);
-
-        if (activeSalon !== salon) {
-          // Charger les horaires pour l'autre salon si nécessaire
-          const alternateResponse = await fetch(
-            `/api/opening-hours?salon=${encodeURIComponent(
-              activeSalon
-            )}&dates=${dates.join(",")}`
+        if (allDaysClosed) {
+          const alternateSalon = getAlternateSalon(salon);
+          console.log("Loading alternate salon:", alternateSalon);
+          
+          const alternateData = await fetchSalonData(alternateSalon);
+          const alternateProcessed = processOpeningHours(
+            alternateData.dates,
+            alternateData.data,
+            alternateSalon
           );
 
-          if (alternateResponse.ok) {
-            const alternateData = await alternateResponse.json();
-            const alternateTimeSlots = generateTimeSlotsFromData(
-              alternateData,
-              durationInMinutes
-            );
-
-            setOpeningHours(alternateData);
-            setWeeklyTimeSlots(alternateTimeSlots);
-          }
+          setWeeklyTimeSlots(alternateProcessed.newTimeSlots);
+          setOpeningHours(alternateProcessed.newOpeningHours);
+          setActiveSalon(alternateSalon);
+        } else {
+          setWeeklyTimeSlots(newTimeSlots);
+          setOpeningHours(newOpeningHours);
+          setActiveSalon(salon);
         }
       } catch (err) {
-        console.error("Erreur lors de la récupération des horaires :", err);
         setError("Impossible de charger les créneaux horaires.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOpeningHoursAndSlots();
+    loadSalonData();
   }, [startDate, salon, durationInMinutes]);
-
-  const determineActiveSalon = (openingHoursData: {
-    [key: string]: OpeningHour;
-  }) => {
-    const dates = Object.keys(openingHoursData);
-    const allDaysClosed = dates.every(
-      (date) => openingHoursData[date]?.isClosed
-    );
-
-    if (allDaysClosed) {
-      return salon === "Soye-en-Septaine" ? "Flavigny" : "Soye-en-Septaine";
-    }
-    return salon;
-  };
 
   const handleSlotSelect = (date: string, time: string) => {
     setSelectedSlot({ date, time });

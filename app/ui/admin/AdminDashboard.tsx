@@ -88,7 +88,6 @@ export default function AdminDashboard({
     category: prestation.category ?? null,
   }));
 
-  // Formatage des horaires d'ouverture
   const formattedOpeningHours = openingHours.map((hour) => ({
     ...hour,
     id: hour.id ? Number(hour.id) : undefined,
@@ -96,7 +95,6 @@ export default function AdminDashboard({
     endTime: typeof hour.endTime === "string" ? hour.endTime : "",
   }));
 
-  // Fonction pour générer et télécharger le CSV du questionnaire de santé
   const downloadHealthDataCSV = (healthData: { [key: string]: string }, userName: string) => {
     const csvContent = Object.entries(healthData)
       .map(([question, answer]) => `${question},${answer}`)
@@ -106,61 +104,53 @@ export default function AdminDashboard({
   };
 
   return (
-    <div>
-      <div className="flex justify-center gap-4 mb-8">
+    <div className="px-4 md:px-8 py-4 md:py-8">
+      <div className="flex flex-wrap justify-center gap-4 mb-8">
         <button
           onClick={() => setActiveTab('prestations')}
-          className={`px-4 py-2 rounded ${activeTab === 'prestations' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
+          className={`px-4 py-2 rounded w-full sm:w-auto ${activeTab === 'prestations' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Voir les Prestations
         </button>
         <button
           onClick={() => setActiveTab('reservations')}
-          className={`px-4 py-2 rounded ${activeTab === 'reservations' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
+          className={`px-4 py-2 rounded w-full sm:w-auto ${activeTab === 'reservations' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Voir les Réservations
         </button>
         <button
           onClick={() => setActiveTab('openingHours')}
-          className={`px-4 py-2 rounded ${activeTab === 'openingHours' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
+          className={`px-4 py-2 rounded w-full sm:w-auto ${activeTab === 'openingHours' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Gestion des Horaires
         </button>
         <button
           onClick={() => setActiveTab('tattooRequests')}
-          className={`px-4 py-2 rounded ${activeTab === 'tattooRequests' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
+          className={`px-4 py-2 rounded w-full sm:w-auto ${activeTab === 'tattooRequests' ? "bg-green text-white" : "bg-gray-300 hover:bg-green hover:text-white"}`}
         >
           Voir les Demandes de Tatouage
         </button>
       </div>
 
       {activeTab === 'prestations' && (
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
-            Prestations Onglerie
-          </h2>
+        <div className="max-w-full sm:max-w-5xl mx-auto">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700 mb-4">Prestations Onglerie</h2>
           <AddPrestationModal serviceType="ONGLERIE" />
           <PrestationList prestations={prestationsWithCategory} serviceType="ONGLERIE" />
 
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">
-            Galerie Flash Tattoo
-          </h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">Galerie Flash Tattoo</h2>
           <AddPrestationModal serviceType="FLASH_TATTOO" />
           <PrestationList prestations={prestationsWithCategory} serviceType="FLASH_TATTOO" />
 
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">
-            Galerie Tatouage
-          </h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700 mb-4 mt-8">Galerie Tatouage</h2>
           <AddPrestationModal serviceType="TATOUAGE" />
           <PrestationList prestations={prestationsWithCategory} serviceType="TATOUAGE" />
         </div>
       )}
 
       {activeTab === 'reservations' && (
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-semibold text-green mb-4">
-            Liste des Réservations
-          </h2>
+        <div className="max-w-full sm:max-w-5xl mx-auto">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-green mb-4">Liste des Réservations</h2>
           <ReservationList
             reservations={reservations}
             onAccept={handleAcceptReservation}
@@ -170,7 +160,7 @@ export default function AdminDashboard({
       )}
 
       {activeTab === 'openingHours' && (
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-full sm:max-w-5xl mx-auto">
           <OpeningHoursEditor initialHours={formattedOpeningHours} salon="Flavigny" />
         </div>
       )}

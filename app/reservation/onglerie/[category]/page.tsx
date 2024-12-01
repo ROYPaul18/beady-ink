@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { PrestationWithImages } from "@/lib/types";
 import ReservationPrestationList from "@/app/ui/reservation/ReservationPrestationList";
@@ -49,7 +48,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
   );
 
   const handleCategoryChange = (newCategory: OnglerieCategory) => {
-    setCategory(newCategory); // Change uniquement la catégorie sans recharger la page
+    setCategory(newCategory);
   };
 
   const categoryCounts = Object.values(OnglerieCategory).reduce((acc, cat) => {
@@ -64,9 +63,9 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
   };
 
   return (
-    <div className="bg-[url('/img/bg-marbre.png')] min-h-[75vh] bg-cover px-4 pt-12 pb-28 flex gap-12">
+    <div className="bg-[url('/img/bg-marbre.png')] min-h-[75vh] bg-cover px-4 pt-12 pb-28 flex flex-col md:flex-row gap-12">
       {/* Colonne latérale pour les catégories */}
-      <div className="w-1/4 bg-white shadow-lg rounded-lg p-6 max-h-full overflow-y-auto">
+      <div className="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-6 max-h-full overflow-y-auto mb-6 md:mb-0">
         <h2 className="text-2xl font-bold text-green mb-4">Catégories</h2>
         <div className="flex flex-col space-y-2">
           {Object.values(OnglerieCategory).map((cat) => (
@@ -85,8 +84,8 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
       </div>
 
       {/* Section principale */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-screen-xl mx-auto">
-        <div className="lg:col-span-2">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-screen-xl mx-auto">
+        <div className="md:col-span-2">
           {isLoading ? (
             <div className="text-center text-gray-500">Chargement des prestations...</div>
           ) : (

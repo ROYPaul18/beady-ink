@@ -1,10 +1,10 @@
-// ProfileEditor.tsx
-
-"use client";
+'use client';
 
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 
 interface UserProfile {
+  id: number;
   prenom: string;
   nom: string;
   telephone: string;
@@ -20,30 +20,65 @@ export default function ProfileEditor({ userProfile }: ProfileEditorProps) {
   const [nom, setNom] = useState(userProfile?.nom || "");
   const [telephone, setTelephone] = useState(userProfile?.telephone || "");
   const [email, setEmail] = useState(userProfile?.email || "");
+  const [userId] = useState(userProfile?.id || 0);
 
   const handleUpdate = async () => {
-    const res = await fetch("/api/user/update", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nom, prenom, telephone, email }),
-    });
-    const data = await res.json();
-    alert(data.message);
+    if (!userId) {
+      alert("Erreur: ID utilisateur manquant");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/user/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: userId,
+          nom,
+          prenom,
+          telephone,
+          email
+        }),
+      });
+    
+      const data = await res.json();
+      
+      if (res.ok) {
+        alert(data.message);
+      } else {
+        alert("Erreur lors de la mise à jour");
+      }
+    } catch (error) {
+      alert("Erreur lors de la mise à jour");
+    }
   };
 
   const handleDelete = async () => {
     const confirmed = confirm("Êtes-vous sûr de vouloir supprimer votre compte ?");
     if (confirmed) {
-      const res = await fetch("/api/user/delete", { method: "DELETE" });
-      const data = await res.json();
-      alert(data.message);
-      if (res.ok) window.location.href = "/sign-in";
+      try {
+        const res = await fetch("/api/user/delete", {
+          method: "DELETE"
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          alert(data.message);
+          await signOut({ callbackUrl: "/sign-in" });
+        } else {
+          alert(data.message || "Erreur lors de la suppression du compte");
+        }
+      } catch (error) {
+        alert("Erreur lors de la suppression du compte");
+      }
     }
-  };
+  }
 
   return (
-    <div className="p-6 rounded-md w-full max-w-lg">
-      <h2 className="text-3xl font-semibold mb-6 text-center text-green">Éditer mon profil</h2>
+    <div className="p-4 sm:p-6 md:max-w-lg mx-auto rounded-md w-full">
+      <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-center text-green-600">Éditer mon profil</h2>
+      
       <ul className="space-y-4">
         {/* Prénom */}
         <li className="flex items-center bg-lightblue bg-opacity-50 p-4 rounded-md">
@@ -154,14 +189,19 @@ export default function ProfileEditor({ userProfile }: ProfileEditorProps) {
         </li>
       </ul>
 
-      <div className="mt-6 flex gap-2">
-        <button onClick={handleDelete} className="w-1/2 py-2 px-3 bg-red text-white rounded-md text-sm font-medium">
+      <div className="mt-6 flex flex-col sm:flex-row gap-2">
+        <button
+          onClick={handleDelete}
+          className="w-full sm:w-1/2 py-2 px-3 bg-red text-white rounded-md text-sm font-medium"
+        >
           Supprimer mon compte
         </button>
-        <button onClick={handleUpdate} className="w-1/2 py-2 px-3 bg-green text-white rounded-md text-sm font-medium">
+        <button
+          onClick={handleUpdate}
+          className="w-full sm:w-1/2 py-2 px-3 bg-green text-white rounded-md text-sm font-medium"
+        >
           Enregistrer
         </button>
-       
       </div>
     </div>
   );

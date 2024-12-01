@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, addDays, format, eachDayOfInterval } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import {
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  format,
+  eachDayOfInterval,
+} from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface WeekToggleRequest {
   weekKey: string;
@@ -15,7 +23,7 @@ async function ensureOpeningHoursExist(
   isClosed: boolean
 ) {
   const dates = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  const weekKey = format(weekStart, 'yyyy-MM-dd'); // Génération de la clé de la semaine
+  const weekKey = format(weekStart, "yyyy-MM-dd"); // Génération de la clé de la semaine
 
   for (const date of dates) {
     try {
@@ -35,45 +43,44 @@ async function ensureOpeningHoursExist(
         },
       });
     } catch (error) {
-      console.error(`Erreur lors de la création des horaires pour ${salon} à la date ${date}:`, error);
+      console.error(
+        `Erreur lors de la création des horaires pour ${salon} à la date ${date}:`,
+        error
+      );
     }
   }
 }
 
-
 // GET : Récupère les semaines sélectionnées pour un salon
+// Dans /api/opening-hours/weekly/route.ts
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const salon = searchParams.get("salon");
-
-    if (!salon) {
-      return NextResponse.json(
-        { message: "Le salon est requis." },
-        { status: 400 }
-      );
-    }
-
-    // Trouver toutes les semaines où le salon est ouvert
+    // Récupérer toutes les semaines où n'importe quel salon est ouvert
     const openWeeks = await db.openingHours.findMany({
       where: {
-        salon,
         isClosed: false,
       },
       distinct: ['weekKey'],
+      orderBy: {
+        date: 'asc',
+      },
       select: {
         weekKey: true,
       },
     });
 
-    console.log("Semaines ouvertes trouvées pour", salon, ":", openWeeks);
-
-    return NextResponse.json({ 
-      selectedWeeks: openWeeks.map(week => week.weekKey).filter(Boolean) 
+    return NextResponse.json({
+      selectedWeeks: openWeeks
+        .map(week => week.weekKey)
+        .filter(Boolean)
+        .sort()
     });
   } catch (error) {
     console.error("Erreur lors de la récupération des semaines :", error);
-    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Erreur serveur", success: false },
+      { status: 500 }
+    );
   }
 }
 
@@ -97,54 +104,133 @@ export async function PUT(req: Request) {
     await db.$transaction(async (prisma) => {
       for (const date of dates) {
         const isSunday = date.getDay() === 0;
-        
+
         // Pour Soye-en-Septaine
-        await prisma.openingHours.upsert({
+        // D'abord, trouvons ou créons l'enregistrement
+        const existingSoyeHours = await prisma.openingHours.findUnique({
           where: {
             salon_date: {
-              salon: 'Soye-en-Septaine',
+              salon: "Soye-en-Septaine",
               date,
             },
-          },
-          create: {
-            salon: 'Soye-en-Septaine',
-            date,
-            weekKey,
-            isClosed: isSunday ? true : !salonSoye,
-            startTime: isSunday || !salonSoye ? "" : "09:00",
-            endTime: isSunday || !salonSoye ? "" : "19:00",
-            jour: format(date, 'EEEE', { locale: fr }).toLowerCase(),
-          },
-          update: {
-            isClosed: isSunday ? true : !salonSoye,
-            startTime: isSunday || !salonSoye ? "" : "09:00",
-            endTime: isSunday || !salonSoye ? "" : "19:00",
           },
         });
 
-        // Pour Flavigny
-        await prisma.openingHours.upsert({
+        if (existingSoyeHours) {
+          // Si l'enregistrement existe, mettons à jour avec les timeSlots
+          await prisma.timeSlot.deleteMany({
+            where: { openingHoursId: existingSoyeHours.id }
+          });
+
+          await prisma.openingHours.update({
+            where: { id: existingSoyeHours.id },
+            data: {
+              isClosed: isSunday ? true : !salonSoye,
+              startTime: isSunday || !salonSoye ? "" : "09:00",
+              endTime: isSunday || !salonSoye ? "" : "19:00",
+            }
+          });
+
+          if (!isSunday && salonSoye) {
+            await prisma.timeSlot.createMany({
+              data: [
+                {
+                  openingHoursId: existingSoyeHours.id,
+                  startTime: "09:00",
+                  endTime: "12:00"
+                },
+                {
+                  openingHoursId: existingSoyeHours.id,
+                  startTime: "14:00",
+                  endTime: "19:00"
+                }
+              ]
+            });
+          }
+        } else {
+          // Si l'enregistrement n'existe pas, créons-le avec les timeSlots
+          await prisma.openingHours.create({
+            data: {
+              salon: "Soye-en-Septaine",
+              date,
+              weekKey,
+              isClosed: isSunday ? true : !salonSoye,
+              startTime: isSunday || !salonSoye ? "" : "09:00",
+              endTime: isSunday || !salonSoye ? "" : "19:00",
+              jour: format(date, "EEEE", { locale: fr }).toLowerCase(),
+              timeSlots: {
+                create: !salonSoye || isSunday
+                  ? []
+                  : [
+                      { startTime: "09:00", endTime: "12:00" },
+                      { startTime: "14:00", endTime: "19:00" }
+                    ]
+              }
+            }
+          });
+        }
+
+        // Pour Flavigny (même logique)
+        const existingFlavignyHours = await prisma.openingHours.findUnique({
           where: {
             salon_date: {
-              salon: 'Flavigny',
+              salon: "Flavigny",
               date,
             },
           },
-          create: {
-            salon: 'Flavigny',
-            date,
-            weekKey,
-            isClosed: isSunday ? true : salonSoye,
-            startTime: isSunday || salonSoye ? "" : "09:00",
-            endTime: isSunday || salonSoye ? "" : "19:00",
-            jour: format(date, 'EEEE', { locale: fr }).toLowerCase(),
-          },
-          update: {
-            isClosed: isSunday ? true : salonSoye,
-            startTime: isSunday || salonSoye ? "" : "09:00",
-            endTime: isSunday || salonSoye ? "" : "19:00",
-          },
         });
+
+        if (existingFlavignyHours) {
+          await prisma.timeSlot.deleteMany({
+            where: { openingHoursId: existingFlavignyHours.id }
+          });
+
+          await prisma.openingHours.update({
+            where: { id: existingFlavignyHours.id },
+            data: {
+              isClosed: isSunday ? true : salonSoye,
+              startTime: isSunday || salonSoye ? "" : "09:00",
+              endTime: isSunday || salonSoye ? "" : "19:00",
+            }
+          });
+
+          if (!isSunday && !salonSoye) {
+            await prisma.timeSlot.createMany({
+              data: [
+                {
+                  openingHoursId: existingFlavignyHours.id,
+                  startTime: "09:00",
+                  endTime: "12:00"
+                },
+                {
+                  openingHoursId: existingFlavignyHours.id,
+                  startTime: "14:00",
+                  endTime: "19:00"
+                }
+              ]
+            });
+          }
+        } else {
+          await prisma.openingHours.create({
+            data: {
+              salon: "Flavigny",
+              date,
+              weekKey,
+              isClosed: isSunday ? true : salonSoye,
+              startTime: isSunday || salonSoye ? "" : "09:00",
+              endTime: isSunday || salonSoye ? "" : "19:00",
+              jour: format(date, "EEEE", { locale: fr }).toLowerCase(),
+              timeSlots: {
+                create: salonSoye || isSunday
+                  ? []
+                  : [
+                      { startTime: "09:00", endTime: "12:00" },
+                      { startTime: "14:00", endTime: "19:00" }
+                    ]
+              }
+            }
+          });
+        }
       }
     });
 
@@ -154,7 +240,6 @@ export async function PUT(req: Request) {
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }
-
 
 // Suppression des horaires d'un salon spécifique pour un jour donné
 export async function DELETE(req: Request) {

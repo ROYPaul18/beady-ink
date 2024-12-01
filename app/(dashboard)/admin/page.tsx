@@ -4,7 +4,13 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import AdminDashboard from "../../ui/admin/AdminDashboard";
 import { generateOpeningHoursForYear } from "@/lib/initializeHours";
-import { TattooRequestWithUser, FlashTattooRequestWithUser, OpeningHour } from "@/lib/types";
+import { 
+  TattooRequestWithUser, 
+  FlashTattooRequestWithUser, 
+  RawOpeningHour,
+  OpeningHour,
+  transformRawOpeningHour 
+} from "@/lib/types";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -43,9 +49,15 @@ export default async function AdminPage() {
     }),
     db.openingHours.findMany({
       where: { salon: "Flavigny" },
+      include: {
+        timeSlots: true,
+      },
     }),
     db.openingHours.findMany({
       where: { salon: "Soye-en-Septaine" },
+      include: {
+        timeSlots: true,
+      },
     }),
     db.tattooRequest.findMany({
       include: {
@@ -60,7 +72,25 @@ export default async function AdminPage() {
     }),
   ]);
 
-  const rawOpeningHours: OpeningHour[] = [...flavignyHours, ...soyeHours];
+  // Transform raw opening hours to include timeSlots
+  const openingHours: OpeningHour[] = [...flavignyHours, ...soyeHours].map((hour) => ({
+    id: hour.id,
+    salon: hour.salon,
+    jour: hour.jour,
+    startTime: hour.startTime,
+    endTime: hour.endTime,
+    date: hour.date,
+    isClosed: hour.isClosed,
+    createdAt: hour.createdAt,
+    updatedAt: hour.updatedAt,
+    weekKey: hour.weekKey,
+    timeSlots: hour.timeSlots || (hour.isClosed ? [] : [
+      {
+        startTime: hour.startTime || "09:00",
+        endTime: hour.endTime || "19:00"
+      }
+    ])
+  }));
 
   const prestations = rawPrestations.map((prestation) => ({
     ...prestation,
@@ -73,18 +103,6 @@ export default async function AdminPage() {
       ...prestation,
       category: prestation.category ?? null,
     })),
-  }));
-
-  const openingHours = rawOpeningHours.map((hour) => ({
-    id: hour.id,
-    salon: hour.salon,
-    jour: hour.jour,
-    startTime: hour.startTime,
-    endTime: hour.endTime,
-    date: hour.date,
-    isClosed: hour.isClosed,
-    createdAt: hour.createdAt,
-    updatedAt: hour.updatedAt,
   }));
 
   const tattooRequests: TattooRequestWithUser[] = rawTattooRequests.map((request) => ({

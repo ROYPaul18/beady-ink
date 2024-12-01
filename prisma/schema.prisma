@@ -4,14 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  directUrl = env("DIRECT_URL")
   url       = env("DATABASE_URL")
-}
-
-enum OnglerieCategory {
-  SEMI_PERMANENT
-  POSE_GEL
-  SOIN
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -24,10 +18,10 @@ model User {
   role                Role                 @default(USER)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  flashTattooRequests FlashTattooRequest[]
   reservations        Reservation[]
   reviews             Review[]
   tattooRequests      TattooRequest[]
-  flashTattooRequests FlashTattooRequest[]
 }
 
 model TattooRequest {
@@ -38,37 +32,34 @@ model TattooRequest {
   referenceImages String[]
   healthData      Json
   userId          Int
-  user            User     @relation(fields: [userId], references: [id])
-  serviceId       Int
-  service         Service  @relation(fields: [serviceId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  serviceId       Int
+  service         Service  @relation(fields: [serviceId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
 }
 
 model FlashTattooRequest {
-  id            Int      @id @default(autoincrement()) // ID unique pour chaque demande
-  userId        Int     // ID de l'utilisateur qui a fait la demande
-  user          User    @relation(fields: [userId], references: [id])
-  flashTattooId Int     // ID du flash tattoo sélectionné
-  healthData    Json    // Données de santé (par exemple, informations sur les allergies)
-  serviceId     Int     // ID du service
-  service       Service @relation(fields: [serviceId], references: [id]) // Relation avec le service (flash tattoo)
-  createdAt     DateTime @default(now()) // Date de la demande
-  updatedAt     DateTime @updatedAt // Date de mise à jour
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  flashTattooId Int
+  healthData    Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  serviceId     Int
+  service       Service  @relation(fields: [serviceId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
 }
-
-
-
 
 model Service {
   id                  Int                  @id @default(autoincrement())
   type                ServiceType          @unique
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  flashTattooRequests FlashTattooRequest[]
   prestations         Prestation[]
   reservations        Reservation[]
   tattooRequests      TattooRequest[]
-  flashTattooRequests FlashTattooRequest[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
 }
 
 model Prestation {
@@ -78,39 +69,39 @@ model Prestation {
   description  String
   price        Float
   serviceId    Int
-  service      Service           @relation(fields: [serviceId], references: [id])
-  reservations Reservation[]     @relation("ReservationPrestations")
-  images       Image[]
-  reviews      Review[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   category     OnglerieCategory?
+  images       Image[]
+  service      Service           @relation(fields: [serviceId], references: [id])
+  reviews      Review[]
+  reservations Reservation[]     @relation("ReservationPrestations")
 }
 
 model Image {
   id           Int        @id @default(autoincrement())
   url          String
   prestationId Int
-  prestation   Prestation @relation(fields: [prestationId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
+  prestation   Prestation @relation(fields: [prestationId], references: [id], onDelete: Cascade)
 }
 
 model Reservation {
   id          Int          @id @default(autoincrement())
-  user        User         @relation(fields: [userId], references: [id])
   userId      Int
-  service     Service      @relation(fields: [serviceId], references: [id])
   serviceId   Int
-  prestations Prestation[] @relation("ReservationPrestations")
   date        DateTime
-  time        String // Ajout du champ time
-  salon       String
-  status      String       @default("PENDING")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  reviews     Review[]
-  tattooData  String?
+  salon       String
+  status      String       @default("PENDING")
+  time        String
   healthData  String?
+  tattooData  String?
+  service     Service      @relation(fields: [serviceId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  reviews     Review[]
+  prestations Prestation[] @relation("ReservationPrestations")
 }
 
 model Review {
@@ -118,26 +109,44 @@ model Review {
   rating        Int
   comment       String
   userId        Int
-  user          User         @relation(fields: [userId], references: [id])
   reservationId Int?
-  reservation   Reservation? @relation(fields: [reservationId], references: [id])
   prestationId  Int?
-  prestation    Prestation?  @relation(fields: [prestationId], references: [id])
   createdAt     DateTime     @default(now())
+  prestation    Prestation?  @relation(fields: [prestationId], references: [id])
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
 }
 
 model OpeningHours {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   salon     String
-  jour      String
   startTime String?
   endTime   String?
-  createdAt DateTime @default(now())
-  isClosed  Boolean  @default(false)
+  createdAt DateTime   @default(now())
+  jour      String
+  isClosed  Boolean    @default(false)
+  updatedAt DateTime   @updatedAt
   date      DateTime
-  updatedAt DateTime @updatedAt
   weekKey   String?
+  timeSlots TimeSlot[]
   @@unique([salon, date])
+}
+
+model TimeSlot {
+  id             Int          @id @default(autoincrement())
+  startTime      String
+  endTime        String
+  openingHoursId Int
+  isAvailable    Boolean      @default(true)
+  openingHours   OpeningHours @relation(fields: [openingHoursId], references: [id], onDelete: Cascade)
+
+  @@index([openingHoursId])
+}
+
+enum OnglerieCategory {
+  SEMI_PERMANENT
+  POSE_GEL
+  SOIN
 }
 
 enum Role {

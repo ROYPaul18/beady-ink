@@ -43,9 +43,9 @@ export default function ReservationList({ reservations }: ReservationListProps) 
   const getStatusStyles = (status: string) => {
     switch (status) {
       case "ACCEPTED":
-        return "bg-green text-white";
+        return "bg-green-500 text-white";
       case "REJECTED":
-        return "bg-red text-white";
+        return "bg-red-600 text-white";
       case "PENDING":
         return "bg-yellow-100 text-yellow-600";
       default:
@@ -54,61 +54,77 @@ export default function ReservationList({ reservations }: ReservationListProps) 
   };
 
   return (
-    <div className="p-6 rounded-md w-full max-w-lg">
-      <h2 className="text-3xl font-semibold mb-4 text-center text-green">Mes Réservations</h2>
-      
-      <h3 className="text-2xl font-semibold mt-6 mb-4 text-green">Prochains Rendez-vous</h3>
-      <ul>
-        {upcomingReservations.map((reservation) => (
-          <li key={reservation.id} className={`border p-4 my-2 rounded ${getStatusStyles(reservation.status)}`}>
-            <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
-            <p><strong>Salon :</strong> {reservation.salon}</p>
-            <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
+    <div className="p-4 sm:p-6 mx-auto max-w-full sm:max-w-lg rounded-md">
+      <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-center text-green-700">Mes Réservations</h2>
 
-            {/* Bouton de modification de la date pour les rendez-vous annulés */}
-            {reservation.status === "REJECTED" && (
-              <button
-                onClick={() => alert("Rediriger vers la page de modification de date")}
-                className="bg-white text-red px-4 py-2 rounded mt-2"
-              >
-                Modifier la date
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+      {/* Message d'absence de réservations */}
+      {upcomingReservations.length === 0 && pastReservations.length === 0 && (
+        <p className="text-center text-gray-600 mb-6">Aucune réservation à afficher pour le moment. Elles apparaîtront ici lorsque vous en ferez.</p>
+      )}
 
-      <h3 className="text-2xl font-semibold mt-6 mb-4 text-green">Rendez-vous Passés</h3>
-      <ul>
-        {pastReservations.map((reservation) => (
-          <li key={reservation.id} className="border p-4 my-2 rounded bg-gray-200 text-gray-500">
-            <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
-            <p><strong>Salon :</strong> {reservation.salon}</p>
-            <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
+      <h3 className="text-2xl sm:text-3xl font-semibold mt-6 mb-4 text-green-700">Prochains Rendez-vous</h3>
+      {upcomingReservations.length === 0 ? (
+        <p className="text-center text-gray-600">Vous n'avez pas de rendez-vous à venir.</p>
+      ) : (
+        <ul>
+          {upcomingReservations.map((reservation) => (
+            <li
+              key={reservation.id}
+              className={`border p-4 my-2 rounded-md ${getStatusStyles(reservation.status)}`}
+            >
+              <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
+              <p><strong>Salon :</strong> {reservation.salon}</p>
+              <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
 
-            {/* Vérifiez si une prestation est disponible pour laisser un avis */}
-            {reservation.prestations.length > 0 ? (
-              <>
+              {/* Bouton de modification de la date pour les rendez-vous annulés */}
+              {reservation.status === "REJECTED" && (
                 <button
-                  onClick={() => setShowReviewForm(showReviewForm === reservation.id ? null : reservation.id)}
-                  className="bg-green text-white px-4 py-2 rounded mt-2"
+                  onClick={() => alert("Rediriger vers la page de modification de date")}
+                  className="bg-white text-red-600 px-4 py-2 rounded-md mt-2 hover:bg-red-200 transition-all"
                 >
-                  {showReviewForm === reservation.id ? "Annuler" : "Laisser un avis"}
+                  Modifier la date
                 </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
 
-                {/* Afficher le formulaire d'avis pour la prestation si le bouton est cliqué */}
-                {showReviewForm === reservation.id && (
-                  <div className="mt-4">
-                    <ReviewForm prestationId={reservation.prestations[0].id} />
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-gray-600 mt-2">Aucune prestation pour laisser un avis.</p>
-            )}
-          </li>
-        ))}
-      </ul>
+      <h3 className="text-2xl sm:text-3xl font-semibold mt-6 mb-4 text-green-700">Rendez-vous Passés</h3>
+      {pastReservations.length === 0 ? (
+        <p className="text-center text-gray-600">Vous n'avez pas encore de rendez-vous passés.</p>
+      ) : (
+        <ul>
+          {pastReservations.map((reservation) => (
+            <li key={reservation.id} className="border p-4 my-2 rounded-md bg-gray-200 text-gray-500">
+              <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
+              <p><strong>Salon :</strong> {reservation.salon}</p>
+              <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
+
+              {/* Vérifiez si une prestation est disponible pour laisser un avis */}
+              {reservation.prestations.length > 0 ? (
+                <>
+                  <button
+                    onClick={() => setShowReviewForm(showReviewForm === reservation.id ? null : reservation.id)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-md mt-2 hover:bg-green-700 transition-all"
+                  >
+                    {showReviewForm === reservation.id ? "Annuler" : "Laisser un avis"}
+                  </button>
+
+                  {/* Afficher le formulaire d'avis pour la prestation si le bouton est cliqué */}
+                  {showReviewForm === reservation.id && (
+                    <div className="mt-4">
+                      <ReviewForm prestationId={reservation.prestations[0].id} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-600 mt-2">Aucune prestation pour laisser un avis.</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
