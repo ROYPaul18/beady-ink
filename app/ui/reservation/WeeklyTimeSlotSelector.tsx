@@ -145,7 +145,7 @@ export default function WeeklyTimeSlotSelector({
           duration: parseInt(reservation.time),
         }));
       } else {
-        console.error("Expected data to be an array, but received:", data);  // Log d'erreur si data n'est pas un tableau
+        // console.error("Expected data to be an array, but received:", data);  // Log d'erreur si data n'est pas un tableau
         return [];
       }
     } catch (error) {
@@ -249,7 +249,7 @@ export default function WeeklyTimeSlotSelector({
         if (isBefore(currentEndTime, currentPeriodEnd)) {
           const timeStr = format(currentPeriodStart, "HH:mm");
   
-          // Vérifier si ce créneau est déjà réservé
+          // Vérifier si ce créneau est déjà réservé ou s'il se chevauche avec une pause
           const isBooked = existingBookings
             .filter((booking) => booking.date === date)
             .some((booking) => {
@@ -274,6 +274,7 @@ export default function WeeklyTimeSlotSelector({
   
     return slots;
   };
+  
   
   const processOpeningHours = (
     dates: string[],

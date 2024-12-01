@@ -124,10 +124,8 @@ export default function OpeningHoursEditor({
 
               const isClosed = dayData ? dayData.isClosed : false;
               const timeSlots = !isClosed
-                ? dayData?.timeSlots?.length
-                  ? dayData.timeSlots
-                  : [{ startTime: "12:00", endTime: "14:00" }]
-                : [{ startTime: "12:00", endTime: "14:00" }];
+                ? dayData?.timeSlots || []  // Juste utiliser un tableau vide si pas de timeSlots
+                : [];
 
               return {
                 id: dayData?.id || null,
