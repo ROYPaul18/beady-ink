@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { fr } from "date-fns/locale";
 import EditHoursModal from "./EditHoursModal";
-import { OpeningHour } from "@/lib/types"; // Assurez-vous que ce type est importé correctement
+import { OpeningHour } from "@/lib/types";
 
 interface TimeSlot {
   startTime: string;
@@ -118,20 +118,16 @@ export default function OpeningHoursEditor({
                   isClosed: true,
                   startTime: "",
                   endTime: "",
-                  breaks: [],
                   timeSlots: [],
                 };
               }
 
               const isClosed = dayData ? dayData.isClosed : false;
               const timeSlots = !isClosed
-                ? dayData?.timeSlots?.length > 0
+                ? dayData?.timeSlots?.length
                   ? dayData.timeSlots
-                  : [
-                      { startTime: "09:00", endTime: "12:00" },
-                      { startTime: "14:00", endTime: "19:00" },
-                    ]
-                : [];
+                  : [{ startTime: "12:00", endTime: "14:00" }]
+                : [{ startTime: "12:00", endTime: "14:00" }];
 
               return {
                 id: dayData?.id || null,
@@ -141,9 +137,6 @@ export default function OpeningHoursEditor({
                 isClosed,
                 startTime: dayData?.startTime || "09:00",
                 endTime: dayData?.endTime || "19:00",
-                breaks: dayData?.breaks || [
-                  { startTime: "12:00", endTime: "14:00" },
-                ],
                 timeSlots,
               };
             });
@@ -301,10 +294,7 @@ export default function OpeningHoursEditor({
       });
       const weekKey = format(start, "yyyy-MM-dd");
 
-      const defaultTimeSlots = [
-        { startTime: "09:00", endTime: "12:00" },
-        { startTime: "14:00", endTime: "19:00" },
-      ];
+      const defaultTimeSlots = [{ startTime: "12:00", endTime: "14:00" }];
 
       await Promise.all(
         dates.map(async (date) => {
@@ -402,7 +392,7 @@ export default function OpeningHoursEditor({
       endTime: dayHours.endTime,
       isClosed: dayHours.isClosed,
       timeSlots: dayHours.timeSlots,
-      breaks: dayHours.breaks,
+
       weekKey: format(
         startOfWeek(dayHours.date, { weekStartsOn: 1 }),
         "yyyy-MM-dd"
@@ -422,7 +412,7 @@ export default function OpeningHoursEditor({
           endTime: dayHours.endTime,
           isClosed: dayHours.isClosed,
           timeSlots: dayHours.timeSlots,
-          breaks: dayHours.breaks,
+
           weekKey: format(
             startOfWeek(dayHours.date, { weekStartsOn: 1 }),
             "yyyy-MM-dd"
@@ -542,32 +532,34 @@ export default function OpeningHoursEditor({
 
                 {dayHours && !dayHours.isClosed && (
                   <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
-                    {/* Affichage du startTime de l'horaire d'ouverture */}
                     <span className="text-green font-bold">
-                      {formatTimeTo24Hour(dayHours.startTime)}
+                      {formatTimeTo24Hour(dayHours.startTime)}{" "}
+                      {/* Affichage de l'heure d'ouverture */}
                     </span>
 
-                    {/* Affichage des pauses */}
-                    {dayHours.breaks &&
-                      dayHours.breaks.length > 0 &&
-                      dayHours.breaks.map((breakTime, index) => (
+                    {/* Affichage des créneaux de pause */}
+                    {dayHours.timeSlots &&
+                      dayHours.timeSlots.length > 0 &&
+                      dayHours.timeSlots.map((timeSlot, index) => (
                         <div key={index}>
-                          {/* Affichage du startTime et endTime de la pause */}
                           <span className="text-gray-600 mx-1">-</span>
                           <span className="text-green font-bold">
-                            {formatTimeTo24Hour(breakTime.startTime)}
+                            {formatTimeTo24Hour(timeSlot.startTime)}{" "}
+                            {/* Affichage du créneau de pause */}
                           </span>
                           <span className="text-gray-600 mx-1">/</span>
                           <span className="text-green font-bold">
-                            {formatTimeTo24Hour(breakTime.endTime)}
+                            {formatTimeTo24Hour(timeSlot.endTime)}{" "}
+                            {/* Affichage du créneau de pause */}
                           </span>
                         </div>
                       ))}
 
-                    {/* Affichage du endTime de l'horaire d'ouverture */}
+                    {/* Affichage de l'heure de fermeture */}
                     <span className="text-gray-600 mx-1">-</span>
                     <span className="text-green font-bold">
-                      {formatTimeTo24Hour(dayHours.endTime)}
+                      {formatTimeTo24Hour(dayHours.endTime)}{" "}
+                      {/* Affichage de l'heure de fermeture */}
                     </span>
                   </div>
                 )}

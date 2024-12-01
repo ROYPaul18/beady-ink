@@ -19,15 +19,13 @@ export async function GET() {
       Flavigny: {
         defaultClosed: false,
         defaultTimeSlots: [
-          { startTime: "09:00", endTime: "12:00" },
-          { startTime: "14:00", endTime: "19:00" }
+          { startTime: "12:00", endTime: "14:00" }  // Un créneau de pause de 12:00 à 14:00
         ]
       },
       "Soye-en-Septaine": {
         defaultClosed: true,
         defaultTimeSlots: [
-          { startTime: "09:00", endTime: "12:00" },
-          { startTime: "14:00", endTime: "19:00" }
+          { startTime: "12:00", endTime: "14:00" }  // Un créneau de pause de 12:00 à 14:00
         ]
       },
     } as const;
@@ -62,19 +60,20 @@ export async function GET() {
         });
 
         if (!existingEntry) {
-          // Créer l'entrée principale
+          // Créer l'entrée principale avec des horaires d'ouverture de 09:00 à 19:00
+          // Ajout d'un créneau de pause de 12:00 à 14:00
           const openingHours = await db.openingHours.create({
             data: {
               salon,
               jour: format(currentDate, "eeee", { locale: fr }).toLowerCase(),
               date: currentDate,
               weekKey,
-              startTime: isClosed ? null : "09:00",
-              endTime: isClosed ? null : "19:00",
+              startTime: isClosed ? null : "09:00",  // Horaires d'ouverture de base à 09:00
+              endTime: isClosed ? null : "19:00",    // Horaires d'ouverture de base à 19:00
               isClosed,
               timeSlots: {
                 create: isClosed 
-                  ? []
+                  ? []  // Pas de créneaux si fermé
                   : config.defaultTimeSlots.map(slot => ({
                       startTime: slot.startTime,
                       endTime: slot.endTime,
@@ -83,8 +82,25 @@ export async function GET() {
               }
             }
           });
-
-         
+        } else {
+          // Si l'entrée existe déjà, vous pouvez mettre à jour les créneaux horaires
+          await db.openingHours.update({
+            where: {
+              salon_date: {
+                salon,
+                date: currentDate
+              }
+            },
+            data: {
+              timeSlots: {
+                create: config.defaultTimeSlots.map(slot => ({
+                  startTime: slot.startTime,
+                  endTime: slot.endTime,
+                  isAvailable: true,
+                }))
+              }
+            }
+          });
         }
       }
     }
