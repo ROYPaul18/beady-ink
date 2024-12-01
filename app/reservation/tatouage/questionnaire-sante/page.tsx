@@ -27,16 +27,17 @@ export default function HealthQuestionnairePage() {
     const storedTattooData = localStorage.getItem('tattooData');
     if (storedTattooData) {
       const parsedTattooData = JSON.parse(storedTattooData);
-
+  
       // Filtrer les valeurs null ou undefined de referenceImages
       parsedTattooData.referenceImages = parsedTattooData.referenceImages?.filter((img: string | undefined) => img) || [];
-
+  
       setTattooData(parsedTattooData);
     } else {
       // Si pas de données, rediriger vers le formulaire initial
       router.push('/reservation/tatouage');
     }
-  }, []);
+  }, [router]); 
+  
 
   const handleFormSubmit = (data: { healthData: HealthData }) => {
     if (!tattooData) {

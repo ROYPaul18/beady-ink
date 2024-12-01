@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Extract the `id` parameter from the URL
+  // Extraire l'ID depuis le chemin de l'URL
   const id = request.nextUrl.pathname.split('/').pop();
 
   if (!id) {
@@ -31,8 +31,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
-  const id = params.id;
+
+export async function PUT(request: NextRequest): Promise<NextResponse> {
+  // Extraire l'ID de la route dynamique via `request.nextUrl.pathname`
+  const id = request.nextUrl.pathname.split('/').pop();
 
   if (!id) {
     return NextResponse.json({ message: 'ID is required' }, { status: 400 });

@@ -1,4 +1,5 @@
 'use client';
+import Image from "next/image";  // Import Image component
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -205,7 +206,16 @@ export default function ReservationList({ reservations }: ReservationListProps) 
                         <div className="mt-2">
                           <strong>Images de référence :</strong>
                           {tattooRequest.referenceImages.map((image, index) => (
-                            <img key={index} src={image} alt={`Référence ${index + 1}`} className="mt-2 max-w-[200px]" />
+                            <div key={index} className="mt-2 max-w-[200px] relative">
+                            <Image 
+                              src={image} 
+                              alt={`Référence ${index + 1}`} 
+                              width={200}  // Set the width
+                              height={200} // Set the height
+                              objectFit="cover" // Optional: maintain aspect ratio and cover the area
+                              className="rounded"
+                            />
+                          </div>
                           ))}
                         </div>
                       )}

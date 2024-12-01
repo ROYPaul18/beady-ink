@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useState } from "react";
 import { TattooRequestWithUser, FlashTattooRequestWithUser } from "@/lib/types";
@@ -88,20 +89,26 @@ export default function TattooRequests({
                 </p>
 
                 {request.referenceImages.length > 0 && (
-                  <div className="mt-3">
-                    <p className="font-medium mb-2">Images de référence :</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {request.referenceImages.map((imgUrl, idx) => (
-                        <img
-                          key={idx}
-                          src={imgUrl}
-                          alt={`Référence ${idx + 1}`}
-                          className="w-full h-32 object-cover rounded"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+  <div className="mt-3">
+    <p className="font-medium mb-2">Images de référence :</p>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      {request.referenceImages.map((imgUrl, idx) => (
+        <div key={idx} className="relative w-full h-32"> {/* Add a wrapper div with a key */}
+          <Image
+            src={imgUrl}
+            alt={`Référence ${idx + 1}`}
+            layout="fill"
+            objectFit="cover"
+            height={100}
+            width={100}
+            className="rounded"
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
                 <button
                   onClick={() => downloadHealthDataCSV(request.healthData, request.user.nom)}

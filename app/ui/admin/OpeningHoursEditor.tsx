@@ -157,17 +157,17 @@ export default function OpeningHoursEditor({
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des semaines");
         }
-
+  
         const data = await response.json();
         const weeks = data.selectedWeeks || [];
         setSelectedWeeks(weeks);
-
+  
         const currentWeekKey = getCurrentWeekKey();
         const isSoyeWeek = weeks.includes(currentWeekKey);
         const initialSalon = isSoyeWeek ? "Soye-en-Septaine" : "Flavigny";
         setSelectedSalon(initialSalon);
         setIsSoyeOpen(isSoyeWeek);
-
+  
         await fetchHoursForWeek(initialSalon);
       } catch (error) {
         console.error("Erreur lors de l'initialisation :", error);
@@ -175,9 +175,10 @@ export default function OpeningHoursEditor({
         setIsLoading(false);
       }
     };
-
+  
     initializeData();
-  }, [currentWeek]);
+  }, [currentWeek, fetchHoursForWeek, getCurrentWeekKey]);
+  
 
   useEffect(() => {
     if (selectedSalon && !isLoading) {
@@ -192,7 +193,8 @@ export default function OpeningHoursEditor({
       };
       fetchData();
     }
-  }, [currentWeek, selectedSalon]);
+  }, [currentWeek, selectedSalon, isLoading, checkIfSoyeIsOpen, fetchHoursForWeek]);
+  
 
   useEffect(() => {
     if (selectedSalon) {

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { z } from "zod";
 
@@ -8,9 +8,11 @@ const reviewSchema = z.object({
   comment: z.string().min(1, "Le commentaire ne peut pas être vide"),
 });
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const prestationId = parseInt(params.id, 10);
+    // Extraire l'ID à partir de l'URL via `req.nextUrl.pathname`
+    const prestationId = parseInt(req.nextUrl.pathname.split('/').pop() as string, 10);
+
     if (isNaN(prestationId)) {
       return NextResponse.json({ message: "ID de prestation invalide" }, { status: 400 });
     }

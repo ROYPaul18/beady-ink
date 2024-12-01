@@ -11,7 +11,13 @@ import {
   addMinutes,
 } from "date-fns";
 import { fr } from "date-fns/locale";
-
+interface DayInfo {
+  id?: number;
+  isClosed: boolean;
+  startTime: string;
+  endTime: string;
+  timeSlots?: { startTime: string; endTime: string }[];
+}
 interface WeeklyTimeSlotSelectorProps {
   salon: string;
   durationInMinutes: number;
@@ -31,7 +37,10 @@ interface Booking {
   startTime: string;
   duration: number;
 }
-
+interface Reservation {
+  date: string;
+  time: string;
+}
 const daysOfWeek = [
   "lundi",
   "mardi",
@@ -120,32 +129,29 @@ export default function WeeklyTimeSlotSelector({
       : "Soye-en-Septaine";
   };
 
-  const fetchBookings = async (targetSalon: string, dates: string[]) => {
+  const fetchBookings = async (targetSalon: string, dates: string[]): Promise<Booking[]> => {
     try {
-      console.log("Fetching bookings for salon:", targetSalon, "for dates:", dates);  // Log pour fetchBookings
+      console.log("Fetching bookings for salon:", targetSalon, "for dates:", dates);
       const response = await fetch(
-        `/api/reservation/onglerie?salon=${encodeURIComponent(
-          targetSalon
-        )}&dates=${dates.join(",")}`
+        `/api/reservation/onglerie?salon=${encodeURIComponent(targetSalon)}&dates=${dates.join(",")}`
       );
-      
+  
       if (!response.ok) {
-        console.log("Error fetching bookings, response not ok", response.status);  // Log d'erreur
+        console.log("Error fetching bookings, response not ok", response.status);
         return [];
       }
   
-      const data = await response.json();
-      
-      // Vérifier si data est un tableau avant d'utiliser .map()
+      const data: Reservation[] = await response.json(); // Typage précis pour `data`
+  
+      // Vérifier si `data` est un tableau et le mapper si nécessaire
       if (Array.isArray(data)) {
-        console.log("Fetched bookings data:", data);  // Log des données de réservation
-        return data.map((reservation: any) => ({
+        console.log("Fetched bookings data:", data);
+        return data.map((reservation) => ({
           date: format(new Date(reservation.date), "yyyy-MM-dd"),
           startTime: format(new Date(reservation.date), "HH:mm"),
           duration: parseInt(reservation.time),
         }));
       } else {
-        // console.error("Expected data to be an array, but received:", data);  // Log d'erreur si data n'est pas un tableau
         return [];
       }
     } catch (error) {
@@ -206,11 +212,11 @@ export default function WeeklyTimeSlotSelector({
     const slots: string[] = [];
   
     // Convertir startTime et endTime en objets Date
-    let current = parseISO(`${date}T${startTime}`);
+    const current = parseISO(`${date}T${startTime}`); // Remplacer 'let' par 'const'
     const slotEnd = parseISO(`${date}T${endTime}`);
   
     // Créer les périodes de travail avant, pendant, et après les pauses
-    let workingPeriods: { startTime: string; endTime: string }[] = [];
+    const workingPeriods: { startTime: string; endTime: string }[] = []; // Remplacer 'let' par 'const'
     let currentTime = startTime;
   
     // Trier les pauses par heure de début
@@ -276,21 +282,23 @@ export default function WeeklyTimeSlotSelector({
   };
   
   
+  
   const processOpeningHours = (
     dates: string[],
-    data: any,
+    data: { [date: string]: DayInfo }, // On définit explicitement le type de `data`
     salonName: string
   ) => {
     const newTimeSlots: { [date: string]: string[] } = {};
     const newOpeningHours: { [date: string]: OpeningHour } = {};
-
-    console.log("Processing data for", salonName, ":", data); // Pour déboguer
-
+  
+    console.log("Processing data for", salonName, ":", data);
+  
     dates.forEach((date) => {
-      const dayInfo = data[date];
-
-      console.log("Processing date", date, "with info:", dayInfo); // Pour déboguer
-
+      const dayInfo = data[date]; // Récupère les informations pour chaque date
+  
+      console.log("Processing date", date, "with info:", dayInfo);
+  
+      // Crée un objet d'horaires d'ouverture
       newOpeningHours[date] = {
         id: dayInfo?.id || null,
         isClosed: dayInfo?.isClosed ?? false,
@@ -298,26 +306,27 @@ export default function WeeklyTimeSlotSelector({
         endTime: dayInfo?.endTime || "",
         salon: salonName,
       };
-
-      if (!dayInfo?.isClosed && dayInfo?.timeSlots?.length > 0 && dayInfo?.startTime && dayInfo?.endTime) {
-        // On génère les créneaux uniquement si on a des horaires et timeSlots explicitement définis
+  
+      // Vérifie si le jour est ouvert et si des horaires sont définis
+      if (!dayInfo?.isClosed && dayInfo?.startTime && dayInfo?.endTime) {
+        // Générer les créneaux horaires seulement si les horaires sont définis
         const slots = generateTimeSlots(
           date,
           dayInfo.startTime,
           dayInfo.endTime,
           durationInMinutes,
           existingBookings,
-          dayInfo.timeSlots
+          dayInfo.timeSlots || [] // Si `timeSlots` est undefined, on passe un tableau vide
         );
-      
+        
         console.log("Generated slots for", date, ":", slots);
         newTimeSlots[date] = slots;
       } else {
-        // Si pas d'horaires définis ou jour fermé
+        // Si le jour est fermé ou si les horaires ne sont pas définis
         newTimeSlots[date] = [];
       }
     });
-
+  
     return { newTimeSlots, newOpeningHours };
   };
 
