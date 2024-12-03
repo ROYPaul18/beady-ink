@@ -38,7 +38,7 @@ const FlashTattooGallery: React.FC<FlashTattooGalleryProps> = ({ prestations }) 
           className="shadow-md overflow-hidden cursor-pointer"
           onClick={() => handleSelect(prestation)}
         >
-          <div className="relative w-full h-0 pb-[100%]">
+          <div className="relative w-full h-0 pb-[80%]">
             <Image
               src={prestation.images[0]?.url || '/placeholder.png'}
               alt={prestation.name}

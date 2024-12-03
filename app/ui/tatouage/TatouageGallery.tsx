@@ -15,7 +15,7 @@ const TatouageGallery: React.FC<{ prestations: Prestation[] }> = ({ prestations 
   return (
     <section className="">
       <div className="max-w-7xl mx-auto px-4">
-
+    
         {/* Afficher les prestations avec le composant PrestationList */}
         <PrestationList prestations={prestations.slice(0, visibleCount)} />
 

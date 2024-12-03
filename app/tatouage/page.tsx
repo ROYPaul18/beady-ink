@@ -26,6 +26,9 @@ export default async function TatouagePage() {
 
   return (
     <div className="relative min-h-screen px-8 py-2 md:px-26 lg:px-60">
+      <h1 className="text-white text-center text-4xl md:text-6xl mb-2">
+        Galerie de tatouages
+      </h1>
       {/* Image de fond optimisée */}
       <Image
         src="/img/13.png"

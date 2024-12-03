@@ -124,7 +124,7 @@ export default function OpeningHoursEditor({
 
               const isClosed = dayData ? dayData.isClosed : false;
               const timeSlots = !isClosed
-                ? dayData?.timeSlots || []  // Juste utiliser un tableau vide si pas de timeSlots
+                ? dayData?.timeSlots || [] // Juste utiliser un tableau vide si pas de timeSlots
                 : [];
 
               return {
@@ -152,23 +152,32 @@ export default function OpeningHoursEditor({
   useEffect(() => {
     const initializeData = async () => {
       try {
+        if (isLoading) return; // Empêche les appels redondants
+  
         setIsLoading(true);
-        const response = await fetch(`/api/opening-hours/weekly`);
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des semaines");
+  
+        // Vérifiez si les données des semaines sont déjà chargées
+        if (!selectedWeeks.length) {
+          const response = await fetch(`/api/opening-hours/weekly`);
+          if (!response.ok) {
+            throw new Error("Erreur lors de la récupération des semaines");
+          }
+  
+          const data = await response.json();
+          const weeks = data.selectedWeeks || [];
+          setSelectedWeeks(weeks);
+  
+          const currentWeekKey = getCurrentWeekKey();
+          const isSoyeWeek = weeks.includes(currentWeekKey);
+          const initialSalon = isSoyeWeek ? "Soye-en-Septaine" : "Flavigny";
+          setSelectedSalon(initialSalon);
+          setIsSoyeOpen(isSoyeWeek);
+  
+          // Charger les heures uniquement si elles ne sont pas déjà chargées
+          if (!hours.some((h) => h.salon === initialSalon)) {
+            await fetchHoursForWeek(initialSalon);
+          }
         }
-  
-        const data = await response.json();
-        const weeks = data.selectedWeeks || [];
-        setSelectedWeeks(weeks);
-  
-        const currentWeekKey = getCurrentWeekKey();
-        const isSoyeWeek = weeks.includes(currentWeekKey);
-        const initialSalon = isSoyeWeek ? "Soye-en-Septaine" : "Flavigny";
-        setSelectedSalon(initialSalon);
-        setIsSoyeOpen(isSoyeWeek);
-  
-        await fetchHoursForWeek(initialSalon);
       } catch (error) {
         console.error("Erreur lors de l'initialisation :", error);
       } finally {
@@ -177,7 +186,7 @@ export default function OpeningHoursEditor({
     };
   
     initializeData();
-  }, [currentWeek, fetchHoursForWeek, getCurrentWeekKey]);
+  }, [getCurrentWeekKey, selectedWeeks]); // Réduction des dépendances
   
 
   useEffect(() => {
@@ -186,15 +195,22 @@ export default function OpeningHoursEditor({
         setIsLoading(true);
         try {
           const isOpen = await checkIfSoyeIsOpen();
-          await fetchHoursForWeek(selectedSalon);
+          // Vérifier si les données ont réellement changé avant de mettre à jour
+          if (isOpen !== isSoyeOpen) {
+            await fetchHoursForWeek(selectedSalon);
+          }
         } finally {
           setIsLoading(false);
         }
       };
       fetchData();
     }
-  }, [currentWeek, selectedSalon, isLoading, checkIfSoyeIsOpen, fetchHoursForWeek]);
-  
+  }, [
+    selectedSalon,
+    isSoyeOpen,
+    fetchHoursForWeek,
+    checkIfSoyeIsOpen,
+  ]);
 
   useEffect(() => {
     if (selectedSalon) {
@@ -258,7 +274,7 @@ export default function OpeningHoursEditor({
         setIsLoading(false);
       }
     },
-    [currentWeek, selectedWeeks, fetchHoursForWeek]
+    [currentWeek, selectedWeeks]
   );
 
   const formatTimeTo24Hour = useCallback(
@@ -277,15 +293,14 @@ export default function OpeningHoursEditor({
     []
   );
 
-  const handleWeekToggle = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsLoading(true);
+  const handleWeekToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = event.target.checked;
-
-    console.log("Salon sélectionné:", selectedSalon);
-    console.log("Soye ouvert ?", isChecked);
-
+    
+    // Si la valeur de isSoyeOpen est déjà la même, ne rien faire pour éviter un re-rendu infini
+    if (isSoyeOpen === isChecked) return;
+    
+    setIsLoading(true);
+  
     try {
       const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
       const dates = eachDayOfInterval({
@@ -293,19 +308,15 @@ export default function OpeningHoursEditor({
         end: endOfWeek(currentWeek, { weekStartsOn: 1 }),
       });
       const weekKey = format(start, "yyyy-MM-dd");
-
+  
       const defaultTimeSlots = [{ startTime: "12:00", endTime: "14:00" }];
-
+  
       await Promise.all(
         dates.map(async (date) => {
           const formattedDate = format(date, "yyyy-MM-dd");
           const jour = format(date, "EEEE", { locale: fr }).toLowerCase();
           const isSunday = jour === "dimanche";
-
-          // Log pour vérifier les données avant de les envoyer
-          console.log(`Envoi des données pour ${jour} (${formattedDate})`);
-          console.log("isClosed:", isChecked ? "Ouvert" : "Fermé");
-
+  
           const soyeData = {
             salon: "Soye-en-Septaine",
             jour,
@@ -314,24 +325,21 @@ export default function OpeningHoursEditor({
             startTime: isSunday || !isChecked ? "" : "09:00",
             endTime: isSunday || !isChecked ? "" : "19:00",
             weekKey,
-            timeSlots: isSunday || !isChecked ? [] : defaultTimeSlots, // Ne pas envoyer de créneaux si fermé
+            timeSlots: isSunday || !isChecked ? [] : defaultTimeSlots, 
           };
-
+  
           const flavignyData = {
             salon: "Flavigny",
             jour,
             date: formattedDate,
-            isClosed: isSunday ? true : isChecked, // Utilise isChecked pour changer l'état de fermeture
-            startTime: isSunday || isChecked ? "" : "09:00", // Si fermé, startTime vide
-            endTime: isSunday || isChecked ? "" : "19:00", // Si fermé, endTime vide
+            isClosed: isSunday ? true : isChecked, 
+            startTime: isSunday || isChecked ? "" : "09:00",
+            endTime: isSunday || isChecked ? "" : "19:00",
             weekKey,
-            timeSlots: isSunday || isChecked ? [] : defaultTimeSlots, // Ne pas envoyer de créneaux si fermé
+            timeSlots: isSunday || isChecked ? [] : defaultTimeSlots, 
           };
-
-          console.log("Données envoyées pour Soye:", soyeData);
-          console.log("Données envoyées pour Flavigny:", flavignyData);
-
-          // Envoi des données de mise à jour
+  
+          // Envoi des données mises à jour pour Soye et Flavigny
           const requests = [
             fetch("/api/opening-hours", {
               method: "PUT",
@@ -344,7 +352,7 @@ export default function OpeningHoursEditor({
               body: JSON.stringify(flavignyData),
             }),
           ];
-
+  
           const responses = await Promise.all(requests);
           responses.forEach((res, index) => {
             if (!res.ok) {
@@ -362,19 +370,23 @@ export default function OpeningHoursEditor({
           });
         })
       );
-
-      setIsSoyeOpen(isChecked); // Met à jour l'état du salon en fonction de la case cochée
-      const newSalon = isChecked ? "Soye-en-Septaine" : "Flavigny"; // Bascule entre les salons
+  
+      const newSalon = isChecked ? "Soye-en-Septaine" : "Flavigny"; 
       setSelectedSalon(newSalon);
       console.log("Salon après changement:", newSalon);
-
-      await fetchHoursForWeek(newSalon); // Récupère les horaires pour le nouveau salon
+  
+      await fetchHoursForWeek(newSalon); 
+  
+      // Met à jour l'état en fonction de la case à cocher
+      setIsSoyeOpen(isChecked);
+  
     } catch (error) {
       console.error("Erreur lors de la bascule entre les salons:", error);
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const saveDayChanges = async () => {
     if (!editingDay) return;
@@ -428,7 +440,10 @@ export default function OpeningHoursEditor({
           )
         );
         console.log("Heures après modification:", hours);
-        await fetchHoursForWeek();
+        // Ne relancer fetchHoursForWeek que si nécessaire
+        if (hours.some((h) => h.jour.toLowerCase() === editingDay)) {
+          await fetchHoursForWeek();
+        }
         console.log("Mise à jour réussie");
       } else {
         throw new Error(await response.text());
@@ -536,7 +551,6 @@ export default function OpeningHoursEditor({
                       {formatTimeTo24Hour(dayHours.startTime)}{" "}
                       {/* Affichage de l'heure d'ouverture */}
                     </span>
-
                     {/* Affichage des créneaux de pause */}
                     {dayHours.timeSlots &&
                       dayHours.timeSlots.length > 0 &&
@@ -545,12 +559,10 @@ export default function OpeningHoursEditor({
                           <span className="text-gray-600 mx-1">-</span>
                           <span className="text-green font-bold">
                             {formatTimeTo24Hour(timeSlot.startTime)}{" "}
-                            {/* Affichage du créneau de pause */}
                           </span>
                           <span className="text-gray-600 mx-1">/</span>
                           <span className="text-green font-bold">
                             {formatTimeTo24Hour(timeSlot.endTime)}{" "}
-                            {/* Affichage du créneau de pause */}
                           </span>
                         </div>
                       ))}

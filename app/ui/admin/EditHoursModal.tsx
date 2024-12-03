@@ -110,36 +110,31 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
   useEffect(() => {
     if (!currentHours) return;
   
-    // Vérifier si le salon n'est pas fermé et si les horaires sont définis
-    if (
-      !currentHours.isClosed &&
-      (!currentHours.startTime || !currentHours.endTime)
-    ) {
-      setHours((prev) =>
-        prev.map((h) => {
-          if (
-            h.jour.toLowerCase() === editingDay &&
-            h.salon === selectedSalon
-          ) {
-            return {
-              ...h,
-              startTime: h.startTime || "09:00", // Valeur par défaut si absente
-              endTime: h.endTime || "19:00", // Valeur par défaut si absente
-              // Si il n'y a pas de créneaux existants, on initialise avec un seul créneau de 12:00 à 14:00
-              timeSlots: h.timeSlots?.length
-                ? h.timeSlots // Si des créneaux existent déjà, les conserver
-                : [{ startTime: "12:00", endTime: "14:00" }], // Un seul créneau par défaut
-            };
-          }
-          return h;
-        })
-      );
-    }
+    let shouldUpdate = false;
+  
+    const updatedHours = hours.map((h) => {
+      if (
+        h.jour.toLowerCase() === editingDay &&
+        h.salon === selectedSalon &&
+        !currentHours.isClosed &&
+        (!currentHours.startTime || !currentHours.endTime)
+      ) {
+        shouldUpdate = true;
+        return {
+          ...h,
+          startTime: h.startTime || "09:00",
+          endTime: h.endTime || "19:00",
+          timeSlots: h.timeSlots?.length
+            ? h.timeSlots
+            : [{ startTime: "12:00", endTime: "14:00" }],
+        };
+      }
+      return h;
+    });
+  
+    if (shouldUpdate) setHours(updatedHours);
   }, [editingDay, selectedSalon, currentHours, setHours]);
   
-  
-  
-
   if (!editingDay || !currentHours) return null;
 
   return (

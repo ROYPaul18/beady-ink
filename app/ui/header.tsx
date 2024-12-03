@@ -32,7 +32,6 @@ const Header = () => {
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
-    setDropdownOpen(false);
   };
 
   const closeMenu = () => {
@@ -41,6 +40,10 @@ const Header = () => {
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
+  };
+
+  const closeDropdown = () => {
+    setDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -84,13 +87,11 @@ const Header = () => {
         </button>
       </div>
 
-      <nav
-        className={`${
+      <nav className={`${
           menuOpen
-            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-evenly bg-cover bg-center'
+            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-cover bg-center'
             : 'hidden'
-        } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}
-      >
+        } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}>
         <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20">
           <h1 className="text-2xl p-4 text-center text-white">
             <Link href="/" onClick={closeMenu}>
@@ -114,66 +115,61 @@ const Header = () => {
           </h1>
         </div>
 
-        <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4">
-          {/* Version mobile : boutons directs */}
-          <div className="lg:hidden flex flex-col items-center gap-4">
-            {!isAuthenticated && (
-              <Link
-                href="/sign-up"
-                onClick={closeMenu}
-                className="block bg-green text-white px-4 py-2 rounded-md hover:bg-white hover:text-green border-2 border-green transition-all text-center w-full"
-              >
-                Se créer un compte
-              </Link>
-            )}
+        <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-4 lg:absolute lg:right-4 relative">
+          <div className="relative">
+          <div className="flex flex-col gap-4 lg:hidden rounded-lg">
+              {!isAuthenticated ? (
+                <>
+                  <Link
+                    href="/sign-up"
+                    onClick={closeMenu}
+                    className="block sm:bg-white bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all hover:bg-white hover:text-green border-2 border-green text-center"
+                  >
+                    Se créer un compte
+                  </Link>
+                  <Link
+                    href="/sign-in"
+                    onClick={closeMenu}
+                    className="block border-2 sm:bg-white border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all text-center"
+                  >
+                    Se connecter
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={closeMenu}
+                    className="block border-2 bg-white border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all text-center"
+                  >
+                    Mon profil & réservations
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={closeMenu}
+                      className="block border-2 bg-white border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all text-center"
+                    >
+                      Mon dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      signOut({
+                        redirect: true,
+                        callbackUrl: '/',
+                      });
+                      closeMenu();
+                    }}
+                    className="block border-2 border-green bg-green text-white px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all w-full text-center"
+                  >
+                    Se déconnecter
+                  </button>
+                </>
+              )}
+            </div>
 
-            {isAuthenticated ? (
-              <button
-                onClick={() => {
-                  signOut({
-                    redirect: true,
-                    callbackUrl: '/',
-                  });
-                  closeMenu();
-                }}
-                className="block border-2 border-green text-white px-4 py-2 rounded-md hover:text-green transition-all w-full text-center"
-              >
-                Se déconnecter
-              </button>
-            ) : (
-              <Link
-                href="/sign-in"
-                onClick={closeMenu}
-                className="block border-2 border-green text-white px-4 py-2 rounded-md hover:text-green transition-all text-center"
-              >
-                Se connecter
-              </Link>
-            )}
-
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={closeMenu}
-                className="block border-2 border-green text-white px-4 py-2 rounded-md hover:text-green transition-all text-center"
-              >
-                Mon dashboard
-              </Link>
-            )}
-
-            {isAuthenticated && (
-              <Link
-                href="/profile"
-                onClick={closeMenu}
-                className="block border-2 border-green text-white px-4 py-2 rounded-md hover:text-green transition-all text-center"
-              >
-                Mon profil & réservations
-              </Link>
-            )}
-          </div>
-
-          {/* Version desktop : dropdown */}
-          <div className="hidden lg:block relative">
-            <button onClick={toggleDropdown} aria-label="Ouvrir le menu utilisateur">
+            <button onClick={toggleDropdown} className="hidden lg:block" aria-label="Ouvrir le menu utilisateur">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -191,13 +187,16 @@ const Header = () => {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute top-12 right-0 bg-white rounded-lg shadow-lg p-4 z-50 w-48">
-                <ul className="flex flex-col text-center space-y-4">
+              <div className="absolute top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 z-50 w-48">
+                <ul className="flex flex-col text-center space-y-4 bg-white">
                   {!isAuthenticated && (
                     <li>
                       <Link
                         href="/sign-up"
-                        onClick={closeMenu}
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
                         className="block bg-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition-all hover:bg-white hover:text-green border-2 border-green"
                       >
                         Se créer un compte
@@ -205,7 +204,7 @@ const Header = () => {
                     </li>
                   )}
 
-                  <li>
+                  <li className="hover:bg-green hover:text-white">
                     {isAuthenticated ? (
                       <button
                         onClick={() => {
@@ -213,6 +212,7 @@ const Header = () => {
                             redirect: true,
                             callbackUrl: '/',
                           });
+                          closeDropdown();
                           closeMenu();
                         }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all w-full text-center"
@@ -222,7 +222,10 @@ const Header = () => {
                     ) : (
                       <Link
                         href="/sign-in"
-                        onClick={closeMenu}
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all"
                       >
                         Se connecter
@@ -231,11 +234,14 @@ const Header = () => {
                   </li>
 
                   {isAdmin && (
-                    <li>
+                    <li className="hover:bg-green hover:text-white">
                       <Link
                         href="/admin"
-                        onClick={closeMenu}
-                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all"
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
+                        className="block border-2 border-green text-green px-4 py-2 rounded-md hover:text-white transition-all"
                       >
                         Mon dashboard
                       </Link>
@@ -243,10 +249,13 @@ const Header = () => {
                   )}
 
                   {isAuthenticated && (
-                    <li>
+                    <li className="hover:bg-green hover:text-white">
                       <Link
                         href="/profile"
-                        onClick={closeMenu}
+                        onClick={() => {
+                          closeDropdown();
+                          closeMenu();
+                        }}
                         className="block border-2 border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all"
                       >
                         Mon profil & réservations
@@ -265,7 +274,10 @@ const Header = () => {
             <Link
               href="/reservation"
               className="block w-full h-full text-center"
-              onClick={closeMenu}
+              onClick={() => {
+                closeDropdown();
+                closeMenu();
+              }}
             >
               Réserver maintenant
             </Link>

@@ -67,19 +67,19 @@ const PrestationList: React.FC<PrestationListProps> = ({
                 {/* Contenu */}
                 <div className="w-full p-4 sm:p-6 flex flex-col justify-between md:w-1/2">
                   <div>
-                    <h3 className="text-4xl sm:text-3xl md:text-6xl font-bold text-green sm:mb-4">
+                    <h3 className="text-4xl sm:text-3xl md:text-4xl font-bold text-green sm:mb-4">
                       {prestation.name}
                     </h3>
-                    <h4 className="text-xl sm:text-3xl md:text-xl font-bold text-green sm:mb-4">
+                    <h4 className="text-xl sm:text-3xl md:text-lg font-bold text-green sm:mb-4">
                       {prestation.category}
                     </h4>
 
-                    <p className="text-gray-700 text-sm sm:text-base mb-4">
+                    <p className="text-gray-700 text-sm sm:text-base">
                       {prestation.description}
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="mt-2 pt-4 border-t border-gray-200">
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2 text-xl sm:text-2xl text-green">
                       <span className="text-sm sm:text-base">
                         Durée : {prestation.duration} min
