@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AddPrestationModal from "@/app/ui/admin/AddPrestationModal";
 import PrestationList from "@/app/ui/admin/PrestationList";
 import ReservationList from "@/app/ui/admin/ReservationList";
 import OpeningHoursEditor from "@/app/ui/admin/OpeningHoursEditor";
-import TattooRequests from "@/app/ui/admin/TattooRequests";  // Import du composant TattooRequests
+import TattooRequests from "@/app/ui/admin/TattooRequests"; // Import du composant TattooRequests
 import { saveAs } from 'file-saver';
 import { PrestationWithImages, ReservationWithUser, OpeningHour, TattooRequestWithUser, FlashTattooRequestWithUser } from "@/lib/types";
 
@@ -27,20 +27,6 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<'prestations' | 'reservations' | 'openingHours' | 'tattooRequests'>('prestations');
   const [reservations, setReservations] = useState(initialReservations);
 
-  useEffect(() => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  const sendNotification = (message: string) => {
-    if (Notification.permission === "granted") {
-      new Notification("Beaudy Ink - Réservation", {
-        body: message,
-      });
-    }
-  };
-
   const handleAcceptReservation = async (reservationId: number) => {
     try {
       const response = await fetch(`/api/reservation/${reservationId}`, {
@@ -56,7 +42,6 @@ export default function AdminDashboard({
           res.id === reservationId ? { ...res, status: 'ACCEPTED' } : res
         )
       );
-      sendNotification("Réservation acceptée avec succès.");
     } catch (error) {
       console.error(error);
     }
@@ -77,7 +62,6 @@ export default function AdminDashboard({
           res.id === reservationId ? { ...res, status: 'REJECTED' } : res
         )
       );
-      sendNotification("Réservation rejetée avec succès.");
     } catch (error) {
       console.error(error);
     }
