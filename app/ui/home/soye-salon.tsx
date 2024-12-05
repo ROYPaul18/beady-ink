@@ -16,7 +16,7 @@ export default function Soye() {
             {/* Image mobile */}
             <div className="lg:hidden mb-6 flex justify-center">
               <Image
-                src="/img/bg-feuille.jpg"
+                src="/image0.jpeg"
                 width={350}
                 height={350}
                 className="rounded-md object-cover"

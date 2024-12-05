@@ -70,9 +70,7 @@ const PrestationList: React.FC<PrestationListProps> = ({
                     <h3 className="text-4xl sm:text-3xl md:text-4xl font-bold text-green sm:mb-4">
                       {prestation.name}
                     </h3>
-                    <h4 className="text-xl sm:text-3xl md:text-lg font-bold text-green sm:mb-4">
-                      {prestation.category}
-                    </h4>
+                 
 
                     <p className="text-gray-700 text-sm sm:text-base">
                       {prestation.description}
