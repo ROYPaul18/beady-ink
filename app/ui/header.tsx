@@ -130,7 +130,7 @@ const Header = () => {
                   <Link
                     href="/sign-in"
                     onClick={closeMenu}
-                    className="block border-2 sm:bg-white border-green text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all text-center"
+                    className="block border-2 sm:bg-white border-green bg-white text-green px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-all text-center"
                   >
                     Se connecter
                   </Link>
@@ -290,4 +290,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default Header;  
