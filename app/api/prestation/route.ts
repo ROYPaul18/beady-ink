@@ -45,8 +45,8 @@ const uploadImageToCloudinary = async (buffer: Buffer, folder: string): Promise<
       {
         folder,
         transformation: [
-          { width: 800, height: 800, crop: 'limit' },
-          { quality: 'auto:eco', fetch_format: 'auto' },
+          { width: 1200, height: 1200, crop: 'limit' }, // Résolution augmentée modérément
+          { quality: 'auto:good', fetch_format: 'auto', progressive: true, dpr: 'auto' }, // Qualité équilibrée
         ],
       },
       (error, result) => {
@@ -60,6 +60,7 @@ const uploadImageToCloudinary = async (buffer: Buffer, folder: string): Promise<
     stream.pipe(uploadStream);
   });
 };
+
 
 // Fonction pour extraire l'ID public de Cloudinary à partir de l'URL de l'image
 const extractPublicIdFromUrl = (url: string): string | null => {

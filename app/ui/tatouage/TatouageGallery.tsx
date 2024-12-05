@@ -24,7 +24,7 @@ const TatouageGallery: React.FC<{ prestations: Prestation[] }> = ({ prestations 
           <div className="flex justify-center mt-6">
             <button
               onClick={handleSeeMore}
-              className="bg-marron text-white px-6 py-2 rounded-sm hover:bg-red-700 transition duration-200"
+              className="bg-white text-marron px-6 py-2 rounded-sm hover:bg-red-700 transition duration-200"
             >
               Voir Plus
             </button>

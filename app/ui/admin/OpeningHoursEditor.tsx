@@ -83,24 +83,24 @@ export default function OpeningHoursEditor({
     async (salonToFetch?: string) => {
       const salon = salonToFetch || selectedSalon;
       if (!salon) return;
-
+  
       try {
         const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
         const end = endOfWeek(currentWeek, { weekStartsOn: 1 });
         const dates = eachDayOfInterval({ start, end }).map((date) =>
           format(date, "yyyy-MM-dd")
         );
-
+  
         const response = await fetch(
           `/api/opening-hours?salon=${salon}&dates=${dates.join(",")}`
         );
-
+  
         if (response.ok) {
           const data: { [key: string]: OpeningHour } = await response.json();
-
+  
           // Log pour vérifier que les données sont bien récupérées
           console.log("Données récupérées depuis l'API:", data);
-
+  
           setHours((prevHours) => {
             return dates.map((date) => {
               const jour = format(new Date(date), "EEEE", {
@@ -108,7 +108,7 @@ export default function OpeningHoursEditor({
               }).toLowerCase();
               const isSunday = jour === "dimanche";
               const dayData = data[date];
-
+  
               if (isSunday || (dayData && dayData.isClosed)) {
                 return {
                   id: dayData?.id || null,
@@ -121,12 +121,20 @@ export default function OpeningHoursEditor({
                   timeSlots: [],
                 };
               }
-
+  
               const isClosed = dayData ? dayData.isClosed : false;
-              const timeSlots = !isClosed
-                ? dayData?.timeSlots || [] // Juste utiliser un tableau vide si pas de timeSlots
+  
+              // Déduplique les timeSlots ici
+              const uniqueTimeSlots = !isClosed
+                ? Array.from(
+                    new Set(
+                      (dayData?.timeSlots || []).map((slot) =>
+                        JSON.stringify(slot)
+                      )
+                    )
+                  ).map((slot) => JSON.parse(slot)) // Reconstruit les timeSlots uniques
                 : [];
-
+  
               return {
                 id: dayData?.id || null,
                 date: new Date(date),
@@ -135,7 +143,7 @@ export default function OpeningHoursEditor({
                 isClosed,
                 startTime: dayData?.startTime || "09:00",
                 endTime: dayData?.endTime || "19:00",
-                timeSlots,
+                timeSlots: uniqueTimeSlots, // Utilise les timeSlots dédupliqués
               };
             });
           });
@@ -148,6 +156,7 @@ export default function OpeningHoursEditor({
     },
     [currentWeek, selectedSalon]
   );
+  
 
   useEffect(() => {
     const initializeData = async () => {
@@ -173,10 +182,13 @@ export default function OpeningHoursEditor({
           setSelectedSalon(initialSalon);
           setIsSoyeOpen(isSoyeWeek);
   
+          
           // Charger les heures uniquement si elles ne sont pas déjà chargées
           if (!hours.some((h) => h.salon === initialSalon)) {
             await fetchHoursForWeek(initialSalon);
           }
+
+          
         }
       } catch (error) {
         console.error("Erreur lors de l'initialisation :", error);

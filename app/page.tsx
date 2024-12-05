@@ -14,8 +14,8 @@ export default function Home() {
         src="/img/bg-marbre.png"
         alt="Background image"
         fill
-        style={{ objectFit: "cover", zIndex: -1 }} // Fill pour occuper tout l'espace, objet fit pour le style
-        priority // Priorité pour charger en premier
+        style={{ objectFit: "cover", zIndex: -1 }} 
+        priority
       />
       
       {/* Contenu de la page */}
