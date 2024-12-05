@@ -66,6 +66,7 @@ export default function Gallery() {
 
   const imagesPerRow = 3; // Adjust based on your grid configuration
   const visibleImages = visibleRows * imagesPerRow;
+  const visibleFilteredImages = filteredPrestations.flatMap((prestation) => prestation.images).slice(0, visibleImages);
 
   return (
     <div className="min-h-screen bg-cover p-8 bg-green-30">
@@ -116,11 +117,13 @@ export default function Gallery() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredPrestations
-          .flatMap((prestation) => prestation.images)
-          .slice(0, visibleImages)
-          .map((image, index) => (
+      {visibleFilteredImages.length === 0 ? (
+        <div className="text-center text-gray-500 text-xl">
+          Aucune image disponible pour cette catégorie.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {visibleFilteredImages.map((image, index) => (
             <div
               key={index}
               className="relative w-full pb-[100%] bg-gray-200 rounded-md overflow-hidden"
@@ -134,7 +137,8 @@ export default function Gallery() {
               />
             </div>
           ))}
-      </div>
+        </div>
+      )}
 
       {visibleImages < filteredPrestations.flatMap((p) => p.images).length && (
         <div className="flex justify-center mt-8">
@@ -149,3 +153,4 @@ export default function Gallery() {
     </div>
   );
 }
+
