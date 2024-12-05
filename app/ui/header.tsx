@@ -89,35 +89,35 @@ const Header = () => {
 
       <nav className={`${
           menuOpen
-            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-center bg-cover bg-center'
+            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-start pt-16 pb-24 overflow-y-auto'
             : 'hidden'
         } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}>
-        <div className="flex flex-col items-center gap-2 lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20">
-          <h1 className="text-2xl p-4 text-center text-white">
+        <div className="flex flex-col items-center gap-1 lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20 mb-6">
+          <h1 className="text-2xl p-3 text-center text-white">
             <Link href="/" onClick={closeMenu}>
               Accueil
             </Link>
           </h1>
-          <h1 className="text-2xl p-4 text-center text-white">
+          <h1 className="text-2xl p-3 text-center text-white">
             <Link href="/onglerie" onClick={closeMenu}>
               Onglerie
             </Link>
           </h1>
-          <h1 className="text-2xl p-4 text-center text-white">
+          <h1 className="text-2xl p-3 text-center text-white">
             <Link href="/tatouage" onClick={closeMenu}>
               Tatouage
             </Link>
           </h1>
-          <h1 className="text-2xl p-4 text-center text-white">
+          <h1 className="text-2xl p-3 text-center text-white">
             <Link href="/tattoo" onClick={closeMenu}>
               Flash Tattoo
             </Link>
           </h1>
         </div>
 
-        <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-4 lg:absolute lg:right-4 relative">
-          <div className="relative">
-          <div className="flex flex-col gap-4 lg:hidden rounded-lg">
+        <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4 w-full max-w-xs lg:max-w-none mx-auto lg:mx-0 lg:w-auto px-4">
+          <div className="relative w-full lg:w-auto">
+            <div className="flex flex-col gap-3 lg:hidden rounded-lg w-full">
               {!isAuthenticated ? (
                 <>
                   <Link
@@ -268,7 +268,7 @@ const Header = () => {
           </div>
 
           <button
-            className="text-lg font-bold bg-white text-green rounded-sm px-4 py-2"
+            className="text-lg font-bold bg-white text-green rounded-sm px-4 py-2 w-full lg:w-auto"
             aria-label="Réserver maintenant"
           >
             <Link
