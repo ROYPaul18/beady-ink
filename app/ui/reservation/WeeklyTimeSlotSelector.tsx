@@ -13,6 +13,7 @@ import {
 import { fr } from "date-fns/locale";
 interface DayInfo {
   id?: number;
+  salon: string; // Ajout du champ salon
   isClosed: boolean;
   startTime: string;
   endTime: string;
@@ -51,60 +52,12 @@ const daysOfWeek = [
   "dimanche",
 ];
 
-const generateTimeSlots = (
-  date: string,
-  startTime: string,
-  endTime: string,
-  durationInMinutes: number,
-  existingBookings: Booking[] = []
-): string[] => {
-  const slots: string[] = [];
-
-  // Convertir startTime et endTime en objets Date
-  let current = parseISO(`${date}T${startTime}`);
-  const slotEnd = parseISO(`${date}T${endTime}`);
-
-  // Générer les créneaux horaires de manière continue entre startTime et endTime
-  while (isBefore(current, slotEnd)) {
-    const currentEndTime = addMinutes(current, durationInMinutes);
-
-    // Vérifier si le créneau ne dépasse pas l'heure de fin
-    if (
-      isBefore(currentEndTime, slotEnd) ||
-      isSameDay(currentEndTime, slotEnd)
-    ) {
-      const timeStr = format(current, "HH:mm");
-
-      // Vérifier si ce créneau est déjà réservé
-      const isBooked = existingBookings
-        .filter((booking) => booking.date === date)
-        .some((booking) => {
-          const bookingStart = parseISO(`${date}T${booking.startTime}`);
-          const bookingEnd = addMinutes(bookingStart, booking.duration);
-          return (
-            isBefore(current, bookingEnd) &&
-            isBefore(bookingStart, currentEndTime)
-          );
-        });
-
-      // Si le créneau n'est pas réservé, on l'ajoute à la liste
-      if (!isBooked) {
-        slots.push(timeStr);
-      }
-    }
-
-    // Passer au créneau suivant
-    current = addMinutes(current, durationInMinutes);
-  }
-
-  return slots;
-};
-
 export default function WeeklyTimeSlotSelector({
   salon,
   durationInMinutes,
   onSelect,
 }: WeeklyTimeSlotSelectorProps) {
+  console.log("Prop salon reçue:", salon);
   const [startDate, setStartDate] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
@@ -392,9 +345,6 @@ export default function WeeklyTimeSlotSelector({
             Semaine du {format(startDate, "dd MMM", { locale: fr })} au{" "}
             {format(addDays(startDate, 6), "dd MMM", { locale: fr })}
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Salon actif : {activeSalon}
-          </p>
         </div>
         <button
           onClick={() => setStartDate(addDays(startDate, 7))}

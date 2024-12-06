@@ -71,7 +71,7 @@ export default function FinalisationPage() {
           onChange={(e) => setSelectedSalon(e.target.value)}
           className="w-full p-2 border border-green rounded-md mb-6"
         >
-          <option value="Soye-en-septaine">Soye en septaine</option>
+          <option value="Soye-en-Septaine">Soye en septaine</option>
           <option value="Flavigny">Flavigny</option>
         </select>
 

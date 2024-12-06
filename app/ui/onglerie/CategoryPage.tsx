@@ -8,7 +8,13 @@ import ReservationActions from "@/app/ui/reservation/ReservationAction";
 import { OnglerieCategory } from "@prisma/client";
 import { useReservation } from "@/app/context/ReservationContext";
 
-// Déclaration des props attendues par le composant
+// Fonction utilitaire pour formater les noms des catégories
+const formatCategoryName = (category: string) => {
+  return category
+    .toLowerCase()
+    .replace(/_/g, ' '); // Remplace les underscores par des espaces et met en minuscule
+};
+
 interface CategoryPageProps {
   initialCategory?: OnglerieCategory;
   initialPrestations?: PrestationWithImages[];
@@ -77,7 +83,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
                 cat === category ? "bg-green text-white" : "bg-gray-700 text-white"
               }`}
             >
-              <span>{cat}</span>
+              <span>{formatCategoryName(cat)}</span>
               <span className="text-sm">({categoryCounts[cat] || 0})</span>
             </button>
           ))}
@@ -86,6 +92,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
 
       {/* Section principale */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-screen-xl mx-auto">
+        {/* Prestations */}
         <div className="md:col-span-2">
           {isLoading ? (
             <div className="text-center text-gray-500">Chargement des prestations...</div>
@@ -94,9 +101,13 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
           )}
         </div>
 
+        {/* Récapitulatif */}
         <div className="bg-white shadow-lg rounded-lg p-6 max-h-full overflow-y-auto">
           <h2 className="text-2xl font-bold text-green mb-4">Récapitulatif</h2>
-          <OnglerieRecap prestations={prestationsComplementaires} onRemovePrestation={handleRemovePrestation} />
+          <OnglerieRecap
+            prestations={prestationsComplementaires}
+            onRemovePrestation={handleRemovePrestation}
+          />
           <ReservationActions />
         </div>
       </div>

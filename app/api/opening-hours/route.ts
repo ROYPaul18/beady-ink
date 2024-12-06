@@ -191,7 +191,13 @@ export async function GET(req: Request) {
     const salon = searchParams.get("salon");
     const datesParam = searchParams.get("dates");
 
+    // Log des paramètres reçus
+    console.log("=== Requête GET : Récupération des horaires ===");
+    console.log("Salon :", salon);
+    console.log("Dates demandées :", datesParam);
+
     if (!salon || !datesParam) {
+      console.error("Salon ou dates manquants.");
       return NextResponse.json(
         { message: "Le salon et les dates sont requis.", success: false },
         { status: 400 }
@@ -201,18 +207,26 @@ export async function GET(req: Request) {
     const dates = datesParam.split(",");
     const currentWeekStart = startOfWeek(new Date(dates[0]), { weekStartsOn: 1 });
 
+    // Log de la semaine en cours
+    console.log("Début de la semaine :", currentWeekStart);
+
+    // Récupération des horaires dans la base de données
     const salonHours = await db.openingHours.findMany({
       where: {
         salon,
         date: {
           gte: currentWeekStart,
-          lt: addDays(currentWeekStart, 7)
-        }
+          lt: addDays(currentWeekStart, 7),
+        },
       },
       include: {
-        timeSlots: true
-      }
+        timeSlots: true,
+      },
     });
+
+    // Log des horaires récupérés depuis la base de données
+    console.log("Horaires récupérés depuis la base :");
+    console.log(JSON.stringify(salonHours, null, 2));
 
     const openingHoursData: OpeningHoursData = {};
 
@@ -220,37 +234,63 @@ export async function GET(req: Request) {
       const currentDate = new Date(date);
       const isSunday = currentDate.getDay() === 0;
 
-      if (isSunday) continue;
+      // Log pour chaque date à traiter
+      console.log(`Processing date: ${date}`);
+      console.log(`Current date in backend:`, currentDate);
 
+      if (isSunday) {
+        console.log(`Skipping Sunday: ${date}`);
+        continue;
+      }
+
+      // Rechercher les horaires pour la date donnée
       const dayHours = salonHours.find(
-        h => format(h.date, 'yyyy-MM-dd') === date
+        (h) => format(h.date, "yyyy-MM-dd") === date
       );
 
+      // Log des horaires trouvés ou absence
       if (dayHours) {
-        openingHoursData[date] = {
-          id: dayHours.id,
-          isClosed: dayHours.isClosed,
-          startTime: validateTime(dayHours.startTime),
-          endTime: validateTime(dayHours.endTime),
-          timeSlots: dayHours.timeSlots.map(slot => ({
-            startTime: validateTime(slot.startTime),
-            endTime: validateTime(slot.endTime)
-          }))
-        };
+        console.log(`Found opening hours for date ${date}:`, JSON.stringify(dayHours, null, 2));
+
+        // Vérifier si les horaires sont incomplets (ouverture sans heures définies)
+        if (!dayHours.isClosed && (!dayHours.startTime || !dayHours.endTime)) {
+          console.warn(`Day open but missing times for date ${date}`);
+          openingHoursData[date] = {
+            id: dayHours.id,
+            isClosed: false,
+            startTime: "",
+            endTime: "",
+            timeSlots: [],
+          };
+        } else {
+          // Horaires valides
+          openingHoursData[date] = {
+            id: dayHours.id,
+            isClosed: dayHours.isClosed,
+            startTime: validateTime(dayHours.startTime),
+            endTime: validateTime(dayHours.endTime),
+            timeSlots: dayHours.timeSlots.map((slot) => ({
+              startTime: validateTime(slot.startTime),
+              endTime: validateTime(slot.endTime),
+            })),
+          };
+        }
       } else {
-        // Fournir une entrée par défaut si aucun horaire n'existe
+        console.log(`No opening hours found for date ${date}. Applying default.`);
         openingHoursData[date] = {
           id: null,
           isClosed: false,
           startTime: "",
           endTime: "",
-          timeSlots: []
+          timeSlots: [],
         };
       }
     }
 
-    return NextResponse.json(openingHoursData);
+    // Log des données envoyées au frontend
+    console.log("Données envoyées au frontend :", JSON.stringify(openingHoursData, null, 2));
 
+    return NextResponse.json(openingHoursData);
   } catch (error) {
     console.error("Erreur lors de la récupération des horaires :", error);
     return NextResponse.json(

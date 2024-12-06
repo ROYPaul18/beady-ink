@@ -26,7 +26,7 @@ export default async function OnglerieReservationPage() {
   const isAuthenticated = !!session;
 
   return (
-    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-4 py-10">
+    <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-4 py-4">
 
       <PrestationList prestations={prestations} isAuthenticated={isAuthenticated} />
     </div>

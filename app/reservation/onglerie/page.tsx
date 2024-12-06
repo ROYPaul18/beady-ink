@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { OnglerieCategory } from "@prisma/client";
 
+// Fonction utilitaire pour formater les catégories
+const formatCategoryName = (category: string) => {
+  return category
+    .toLowerCase()
+    .replace(/_/g, ' '); // Remplace les underscores par des espaces
+};
+
 export default function OnglerieCategoryPage() {
   return (
     <div className="bg-[url('/img/bg-marbre.png')] min-h-screen bg-cover px-4 py-10">
@@ -19,7 +26,9 @@ export default function OnglerieCategoryPage() {
           >
             <div className="relative h-96 w-full">
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition duration-300 group-hover:bg-opacity-60">
-                <h2 className="text-white text-4xl font-bold">{category}</h2>
+                <h2 className="text-white text-4xl font-bold">
+                  {formatCategoryName(category)}
+                </h2>
               </div>
               <div
                 className="w-full h-full"
