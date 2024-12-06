@@ -66,7 +66,7 @@ const PrestationList: React.FC<PrestationListProps> = ({
             >
               <div className="relative h-96 w-full">
                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition duration-300 group-hover:bg-opacity-60">
-                  <h2 className="text-white text-4xl font-bold">
+                  <h2 className="text-white text-4xl font-bold flex items-center justify-center">
                     {formatCategoryName(category)}
                   </h2>
                 </div>
