@@ -91,6 +91,7 @@ export interface FlashTattooRequestWithUser {
     phone: string;
   };
   flashTattooId: number;
+  // imageUrl: string[];
 }
 
 // Tattoo Request Types

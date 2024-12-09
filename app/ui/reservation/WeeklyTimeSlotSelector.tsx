@@ -336,7 +336,8 @@ export default function WeeklyTimeSlotSelector({
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => setStartDate(addDays(startDate, -7))}
-          className="text-green font-bold text-lg"
+          className="text-green font-bold text-lg px-4 py-2"
+          aria-label="Semaine précédente"
         >
           &larr;
         </button>
@@ -348,20 +349,19 @@ export default function WeeklyTimeSlotSelector({
         </div>
         <button
           onClick={() => setStartDate(addDays(startDate, 7))}
-          className="text-green font-bold text-lg"
+          className="text-green font-bold text-lg px-4 py-2"
+          aria-label="Semaine suivante"
         >
           &rarr;
         </button>
       </div>
-
+  
       {loading ? (
-        <p className="text-center text-gray-500 my-4">
-          Chargement des créneaux...
-        </p>
+        <p className="text-center text-gray-500 my-4">Chargement des créneaux...</p>
       ) : error ? (
         <p className="text-center text-red-500 my-4">{error}</p>
       ) : (
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           {daysOfWeek.map((day, index) => {
             const currentDate = addDays(startDate, index);
             const formattedDate = format(currentDate, "yyyy-MM-dd");
@@ -371,38 +371,36 @@ export default function WeeklyTimeSlotSelector({
             const isPastDay =
               isBefore(currentDate, new Date()) && !isCurrentDay;
             const dayHours = openingHours[formattedDate];
-
+  
             if (!dayHours) {
               return (
-                <div key={day} className="flex flex-col items-center">
+                <div key={day} className="flex flex-col items-center text-center">
                   <h3 className="font-semibold text-green mb-2 capitalize">
                     {day}
                     <span className="block text-sm text-gray-500">
                       {displayDate}
                     </span>
                   </h3>
-                  <p className="text-center text-gray-400 text-sm">
-                    Aucun horaire défini
-                  </p>
+                  <p className="text-gray-400 text-sm">Aucun horaire défini</p>
                 </div>
               );
             }
-
+  
             const isClosed = dayHours?.isClosed;
-
+  
             return (
-              <div key={day} className="flex flex-col items-center">
+              <div key={day} className="flex flex-col items-center text-center">
                 <h3 className="font-semibold text-green mb-2 capitalize">
                   {day}
                   <span className="block text-sm text-gray-500">
                     {displayDate}
                   </span>
                 </h3>
-                <div className="space-y-1 w-full">
+                <div className="space-y-2 w-full">
                   {isPastDay ? (
-                    <p className="text-center text-gray-400 text-sm">Passé</p>
+                    <p className="text-gray-400 text-sm">Passé</p>
                   ) : isClosed ? (
-                    <p className="text-center text-red-500 text-sm">Fermé</p>
+                    <p className="text-red-500 text-sm">Fermé</p>
                   ) : slots.length > 0 ? (
                     slots.map((slot) => {
                       const isSelected =
@@ -415,25 +413,24 @@ export default function WeeklyTimeSlotSelector({
                         ),
                         "HH:mm"
                       );
-
+  
                       return (
                         <button
                           key={`${formattedDate}-${slot}`}
                           onClick={() => handleSlotSelect(formattedDate, slot)}
-                          className={`w-full p-2 text-sm rounded text-center transition-colors ${
+                          className={`w-full py-2 text-sm rounded-lg transition-colors ${
                             isSelected
                               ? "bg-green text-white"
                               : "bg-gray-100 hover:bg-gray-200 text-green"
                           }`}
+                          aria-pressed={isSelected}
                         >
                           {slot.replace(":", "h")} - {endTime.replace(":", "h")}
                         </button>
                       );
                     })
                   ) : (
-                    <p className="text-center text-red-500 text-sm">
-                      Aucun créneau
-                    </p>
+                    <p className="text-red-500 text-sm">Aucun créneau</p>
                   )}
                 </div>
               </div>
@@ -441,13 +438,13 @@ export default function WeeklyTimeSlotSelector({
           })}
         </div>
       )}
-
+  
       {selectedSlot && (
-        <div className="mt-4 p-4 bg-green/10 rounded">
+        <div className="mt-4 p-4 bg-green/10 rounded-lg">
           <p className="text-green text-center font-semibold">
             Créneau sélectionné :{" "}
-            {format(new Date(selectedSlot.date), "dd/MM/yyyy", { locale: fr })}{" "}
-            de {selectedSlot.time.replace(":", "h")} à{" "}
+            {format(new Date(selectedSlot.date), "dd/MM/yyyy", { locale: fr })} de{" "}
+            {selectedSlot.time.replace(":", "h")} à{" "}
             {format(
               addMinutes(
                 parseISO(`${selectedSlot.date}T${selectedSlot.time}`),
@@ -460,4 +457,5 @@ export default function WeeklyTimeSlotSelector({
       )}
     </div>
   );
+  
 }

@@ -22,21 +22,33 @@ export default function HealthQuestionnairePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    // Vérifier si les données du flash tattoo existent dans localStorage
     const storedTattooData = localStorage.getItem('flashTattooData');
     if (storedTattooData) {
-      const parsedData = JSON.parse(storedTattooData);
-      if (parsedData.flashTattooId && parsedData.name && parsedData.price) {
-        setFlashTattooData(parsedData);
-      } else {
-        console.error("Données du flash tattoo invalides");
-        router.push('/reservation/flashtattoo'); // Rediriger vers la page de réservation si les données sont invalides
+      try {
+        const parsedData = JSON.parse(storedTattooData);
+  
+        if (
+          parsedData &&
+          typeof parsedData.flashTattooId === 'number' &&
+          typeof parsedData.name === 'string' &&
+          typeof parsedData.price === 'number' &&
+          typeof parsedData.imageUrl === 'string'
+        ) {
+          setFlashTattooData(parsedData);
+        } else {
+          console.error("Données du flash tattoo invalides");
+          router.push('/reservation/flashtattoo'); // Redirection
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données:", error);
+        router.push('/reservation/flashtattoo'); // Redirection
       }
     } else {
       console.error("Pas de données de flash tattoo trouvées");
-      router.push('/reservation/flashtattoo'); // Si aucune donnée, rediriger vers la page de réservation
+      router.push('/reservation/flashtattoo'); // Redirection
     }
   }, [router]);
+  
 
   const handleFormSubmit = (data: { healthData: HealthData }) => {
     if (!flashTattooData) {
