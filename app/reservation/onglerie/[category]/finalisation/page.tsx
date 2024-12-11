@@ -9,7 +9,7 @@ import WeeklyTimeSlotSelector from "@/app/ui/reservation/WeeklyTimeSlotSelector"
 export default function FinalisationPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedSalon, setSelectedSalon] = useState<string>("Soye en septaine");
+  const [selectedSalon, setSelectedSalon] = useState<string>("Soye-en-Septaine");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const router = useRouter();
   const { prestationsComplementaires, setPrestationsComplementaires } = useReservation();
