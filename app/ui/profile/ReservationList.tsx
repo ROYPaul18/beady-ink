@@ -164,7 +164,7 @@ export default function ReservationList({ reservations }: ReservationListProps) 
                     <li key={reservation.id} className="border p-4 my-2 rounded-md bg-gray-200 text-gray-500 shadow-sm">
                       <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
                       <p><strong>Salon :</strong> {reservation.salon}</p>
-                      <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
+                      {/* <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p> */}
                       {reservation.prestations.length > 0 ? (
                         <>
                           <button

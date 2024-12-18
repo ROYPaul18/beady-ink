@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import {
   TimeRange,
@@ -16,8 +18,14 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
   saveDayChanges,
   selectedSalon,
 }) => {
+  // Trouver les heures actuelles pour le jour et le salon sélectionnés
   const currentHours = hours.find(
     (h) => h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+  );
+
+  // État local pour le salon sélectionné pour ce jour
+  const [localSelectedSalon, setLocalSelectedSalon] = useState<string>(
+    selectedSalon || "Flavigny"
   );
 
   // Fonction utilitaire pour convertir une heure en minutes
@@ -27,50 +35,48 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
     return hours * 60 + minutes;
   };
 
+  // Fonction utilitaire pour convertir des minutes en format "HH:MM"
   const minutesToTime = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 
+  // Vérifie si une plage horaire est valide
   const isTimeRangeValid = (range: TimeRange): boolean => {
     if (!range.startTime || !range.endTime) return false;
     return timeToMinutes(range.endTime) > timeToMinutes(range.startTime);
   };
 
-  const formatFrenchTime = (time: string | undefined): string => {
-    if (!time) return "";
-    return time.replace(":", "h");
-  };
-
-  // Mise à jour des heures d'ouverture
+  // Mise à jour des heures d'ouverture en utilisant localSelectedSalon
   const updateStartTime = (value: string) => {
     const updatedStartTime = value || "09:00"; // Valeur par défaut en cas de valeur manquante
     setHours((prev) =>
       prev.map((h) =>
-        h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+        h.jour.toLowerCase() === editingDay && h.salon === localSelectedSalon
           ? { ...h, startTime: updatedStartTime }
           : h
       )
     );
   };
 
-  // Mise à jour de l'heure de fermeture
+  // Mise à jour de l'heure de fermeture en utilisant localSelectedSalon
   const updateEndTime = (value: string) => {
     const updatedEndTime = value || "19:00"; // Valeur par défaut en cas de valeur manquante
     setHours((prev) =>
       prev.map((h) =>
-        h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+        h.jour.toLowerCase() === editingDay && h.salon === localSelectedSalon
           ? { ...h, endTime: updatedEndTime }
           : h
       )
     );
   };
 
+  // Supprimer un créneau horaire spécifique
   const removeTimeSlot = (index: number) => {
     setHours((prev) =>
       prev.map((h) =>
-        h.jour.toLowerCase() === editingDay && h.salon === selectedSalon
+        h.jour.toLowerCase() === editingDay && h.salon === localSelectedSalon
           ? {
               ...h,
               timeSlots: (h.timeSlots || []).filter((_, i) => i !== index),
@@ -80,6 +86,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
     );
   };
 
+  // Mettre à jour un créneau horaire spécifique
   const updateTimeSlot = (
     index: number,
     field: "startTime" | "endTime",
@@ -89,7 +96,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
 
     setHours((prev) =>
       prev.map((h) => {
-        if (h.jour.toLowerCase() === editingDay && h.salon === selectedSalon) {
+        if (h.jour.toLowerCase() === editingDay && h.salon === localSelectedSalon) {
           const newTimeSlots = [...(h.timeSlots || [])];
           newTimeSlots[index] = {
             ...newTimeSlots[index],
@@ -109,13 +116,13 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
   // Initialisation des horaires si nécessaire
   useEffect(() => {
     if (!currentHours) return;
-  
+
     let shouldUpdate = false;
-  
+
     const updatedHours = hours.map((h) => {
       if (
         h.jour.toLowerCase() === editingDay &&
-        h.salon === selectedSalon &&
+        h.salon === localSelectedSalon &&
         !currentHours.isClosed &&
         (!currentHours.startTime || !currentHours.endTime)
       ) {
@@ -131,15 +138,16 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
       }
       return h;
     });
-  
+
     if (shouldUpdate) setHours(updatedHours);
-  }, [editingDay, selectedSalon, currentHours, setHours]);
-  
+  }, [editingDay, localSelectedSalon, currentHours, setHours, hours]);
+
   if (!editingDay || !currentHours) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 p-4 flex items-center justify-center">
       <div className="bg-white w-full max-w-md rounded-lg max-h-[90vh] overflow-y-auto">
+        {/* En-tête du modal */}
         <div className="sticky top-0 bg-white p-4 border-b">
           <h3 className="text-lg md:text-xl font-semibold">
             Modification des horaires - {editingDay}
@@ -152,7 +160,26 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
           </div>
         </div>
 
-        <div className="p-4">
+        {/* Contenu principal du modal */}
+        <div className="p-4 space-y-6">
+          {/* Sélecteur de salon pour le jour en cours */}
+          <div className="border p-4 rounded-lg">
+            <h4 className="font-medium mb-3">Salon pour ce jour</h4>
+            <select
+              value={localSelectedSalon}
+              onChange={(e) => {
+                console.log(`Salon local avant : ${localSelectedSalon}`);
+                setLocalSelectedSalon(e.target.value);
+                console.log(`Salon local après : ${e.target.value}`);
+              }}
+              className="w-full p-2 text-sm border rounded"
+            >
+              <option value="Flavigny">Flavigny</option>
+              <option value="Soye-en-Septaine">Soye-en-Septaine</option>
+            </select>
+          </div>
+
+          {/* Checkbox pour indiquer si le salon est fermé ce jour */}
           <label className="flex items-center mb-4">
             <input
               type="checkbox"
@@ -161,7 +188,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
                 setHours((prev) =>
                   prev.map((h) =>
                     h.jour.toLowerCase() === editingDay &&
-                    h.salon === selectedSalon
+                    h.salon === localSelectedSalon
                       ? {
                           ...h,
                           isClosed: e.target.checked,
@@ -176,10 +203,12 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
             <span className="text-sm">Fermé</span>
           </label>
 
+          {/* Section des horaires si le salon n'est pas fermé */}
           {!currentHours?.isClosed &&
             currentHours?.startTime &&
             currentHours?.endTime && (
               <div className="space-y-6">
+                {/* Horaires d'ouverture et de fermeture */}
                 <div className="border p-4 rounded-lg">
                   <h4 className="font-medium mb-3">Horaires d'ouverture</h4>
                   <div className="grid grid-cols-2 gap-4">
@@ -210,11 +239,16 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
                   </div>
                 </div>
 
+                {/* Gestion des créneaux horaires */}
                 <div>
                   <h4 className="font-medium mb-3">Créneaux horaires</h4>
                   <div className="space-y-4">
                     {(currentHours?.timeSlots || []).map((timeSlot, index) => (
-                      <div key={index} className="border p-3 rounded-lg relative">
+                      <div
+                        key={index}
+                        className="border p-3 rounded-lg relative"
+                      >
+                        {/* Bouton de suppression du créneau */}
                         <div className="absolute top-2 right-2">
                           <button
                             onClick={() => removeTimeSlot(index)}
@@ -235,7 +269,11 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
                               type="time"
                               value={timeSlot.startTime}
                               onChange={(e) =>
-                                updateTimeSlot(index, "startTime", e.target.value)
+                                updateTimeSlot(
+                                  index,
+                                  "startTime",
+                                  e.target.value
+                                )
                               }
                               className="w-full p-2 text-sm border rounded"
                               step="300"
@@ -259,12 +297,13 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
                       </div>
                     ))}
 
+                    {/* Bouton pour ajouter un nouveau créneau */}
                     <button
                       onClick={() => {
                         setHours((prev) =>
                           prev.map((h) =>
                             h.jour.toLowerCase() === editingDay &&
-                            h.salon === selectedSalon
+                            h.salon === localSelectedSalon
                               ? {
                                   ...h,
                                   timeSlots: [
@@ -286,6 +325,7 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
             )}
         </div>
 
+        {/* Pied de page du modal avec les boutons d'action */}
         <div className="sticky bottom-0 bg-white p-4 border-t flex gap-3 justify-end">
           <button
             onClick={closeModal}
@@ -294,7 +334,10 @@ const EditHoursModal: React.FC<EditHoursModalProps> = ({
             Annuler
           </button>
           <button
-            onClick={saveDayChanges}
+            onClick={() => {
+              console.log("Enregistrement avec salon :", localSelectedSalon);
+              saveDayChanges(localSelectedSalon);
+            }}
             className="px-4 py-2 text-sm bg-green text-white rounded hover:bg-green-600"
           >
             Enregistrer

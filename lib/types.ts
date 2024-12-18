@@ -160,8 +160,10 @@ export interface EditHoursModalProps {
   hours: OpeningHour[];
   setHours: Dispatch<SetStateAction<OpeningHour[]>>;
   closeModal: () => void;
-  saveDayChanges: () => Promise<void>;
+  saveDayChanges: (selectedDaySalon?: string) => Promise<void>;
   selectedSalon: string | null;
+  // fetchHoursForSalon: (salon: string) => Promise<void>;
+  
 }
 
 export interface WeekDay {
