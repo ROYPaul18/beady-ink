@@ -91,16 +91,22 @@ export default function ReservationList({ reservations }: ReservationListProps) 
     }
   };
 
+  const sections: Array<'reservations' | 'tattooRequests' | 'flashTattooRequests'> = [
+    'reservations',
+    'tattooRequests',
+    'flashTattooRequests'
+  ];
+
   return (
     <div className="p-4 sm:p-6 mx-auto max-w-full sm:max-w-lg">
       <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-green-700">Mes Réservations</h2>
 
       {/* Boutons de navigation */}
       <div className="flex flex-wrap justify-center gap-2 mb-4">
-        {['reservations', 'tattooRequests', 'flashTattooRequests'].map((section) => (
+        {sections.map((section) => (
           <button
             key={section}
-            onClick={() => setActiveSection(section as any)}
+            onClick={() => setActiveSection(section)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeSection === section ? "bg-green text-white" : "bg-gray-300 text-gray-700 hover:bg-green-500 hover:text-white"
             }`}

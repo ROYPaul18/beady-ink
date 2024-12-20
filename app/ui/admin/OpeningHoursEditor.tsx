@@ -89,8 +89,8 @@ export default function OpeningHoursEditor({
         const flavignyData = await flavignyResponse.json();
         const soyeData = await soyeResponse.json();
 
-        let allHours: OpeningHour[] = [];
-        let updatedDailySalon: DailySalonMap = {};
+        const allHours: OpeningHour[] = [];
+        const updatedDailySalon: DailySalonMap = {};
 
         dates.forEach((date) => {
           const flavignyDay = flavignyData[date] || { isClosed: true };
