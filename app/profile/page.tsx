@@ -37,7 +37,7 @@ export default async function ProfilePage() {
   const reservations = userProfile?.reservations || [];
 
   return (
-    <div className="relative min-h-screen p-8 flex justify-center flex-col md:flex-row gap-8">
+    <div className="relative min-h-screen p-8 flex flex-col md:flex-row-reverse gap-8">
       {/* Image de fond optimisée */}
       <Image
         src="/img/bg-marbre.png"
@@ -47,11 +47,14 @@ export default async function ProfilePage() {
         priority
       />
 
+      {/* Réservations */}
+      <div className="bg-white p-6 rounded-md shadow-md w-full md:w-1/2 h-full">
+        <ReservationList reservations={reservations} />
+      </div>
+
+      {/* Éditeur de profil */}
       <div className="bg-white p-6 rounded-md shadow-md w-full md:w-1/2 h-full">
         <ProfileEditor userProfile={userProfile} />
-      </div>
-      <div className="bg-white p-6 rounded-md shadow-md w-full md:w-1/2 h-full flex justify-center">
-        <ReservationList reservations={reservations} />
       </div>
     </div>
   );

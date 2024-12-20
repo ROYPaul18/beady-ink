@@ -50,7 +50,7 @@ export default function Footer() {
             </Link>
             <span className="hidden sm:inline">|</span>
             <Link
-              href="/"
+              href="http://paulroy.vercel.app"
               className="underline hover:text-gray-200 transition-colors"
             >
               Site réalisé par Paul ROY
