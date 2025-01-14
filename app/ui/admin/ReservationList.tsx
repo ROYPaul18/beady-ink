@@ -58,9 +58,12 @@ export default function ReservationList({
         <ul className="flex-grow">
           {filteredReservations.map((reservation) => (
             <li key={reservation.id} className="border p-4 my-2 rounded bg-gray-100">
-              <p><strong>Date :</strong> {new Date(reservation.date).toLocaleString()}</p>
+              <p><strong>Date :</strong> {new Date(reservation.date).toLocaleString('fr-FR', { timeZone: 'UTC' })}</p>
               <p><strong>Salon :</strong> {reservation.salon}</p>
               <p><strong>Client :</strong> {reservation.user.email}</p>
+              <p><strong>Téléphone :</strong> {reservation.user.telephone || 'Non fourni'}</p>
+              <p><strong>Nom Prénom</strong> {reservation.user.nom || 'Non fourni'}</p>
+
               <ul>
                 <strong>Prestations :</strong>
                 {reservation.prestations.map((prestation) => (

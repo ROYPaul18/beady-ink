@@ -82,38 +82,61 @@ export default function WeeklyTimeSlotSelector({
       : "Soye-en-Septaine";
   };
 
-  const fetchBookings = async (targetSalon: string, dates: string[]): Promise<Booking[]> => {
+  // Cette fonction récupère les réservations existantes dans la base de données.
+  const fetchExistingBookings = async (targetSalon: string, dates: string[]): Promise<Booking[]> => {
+  try {
+    // L'URL de l'API peut être ajustée en fonction de vos besoins.
+    const url = `/api/reservation/onglerie?salon=${encodeURIComponent(targetSalon)}&dates=${dates.join(",")}`;
+    const response = await fetch(url);
+
+    if (!response.ok) throw new Error(`Erreur lors de la récupération des réservations : ${response.statusText}`);
+
+    const data = await response.json();
+
+    console.log("Réservations récupérées de la BDD :", data);
+
+    // Traitement des réservations récupérées pour les rendre compatibles avec le format attendu
+    return data.reservations.map((reservation: Booking) => ({
+      date: reservation.date,
+      startTime: reservation.startTime,
+      duration: reservation.duration,
+      endTime: format(
+        addMinutes(parseISO(`${reservation.date}T${reservation.startTime}`), reservation.duration),
+        "HH:mm"
+      ),
+    }));
+  } catch (error) {
+    console.error("Erreur lors de la récupération des réservations de la BDD :", error);
+    return [];
+  }
+  };
+
+  const fetchBookings = async (targetSalon: string, dates: string[], durationInMinutes: number): Promise<Booking[]> => {
     try {
-      console.log("Fetching bookings for salon:", targetSalon, "for dates:", dates);
-      const response = await fetch(
-        `/api/reservation/onglerie?salon=${encodeURIComponent(targetSalon)}&dates=${dates.join(",")}`
-      );
-  
-      if (!response.ok) {
-        console.log("Error fetching bookings, response not ok", response.status);
-        return [];
-      }
-  
-      const data: Reservation[] = await response.json(); // Typage précis pour `data`
-  
-      // Vérifier si `data` est un tableau et le mapper si nécessaire
-      if (Array.isArray(data)) {
-        console.log("Fetched bookings data:", data);
-        return data.map((reservation) => ({
-          date: format(new Date(reservation.date), "yyyy-MM-dd"),
-          startTime: format(new Date(reservation.date), "HH:mm"),
-          duration: parseInt(reservation.time),
-        }));
-      } else {
-        return [];
-      }
+      const url = `/api/reservation/onglerie?salon=${encodeURIComponent(targetSalon)}&dates=${dates.join(",")}`;
+      const response = await fetch(url);
+    
+      if (!response.ok) throw new Error(`Error fetching bookings: ${response.statusText}`);
+      
+      const data = await response.json();
+      
+      console.log("Réservations récupérées", data);
+    
+      return data.reservations.map((reservation: Booking) => ({
+        date: reservation.date,
+        startTime: reservation.startTime,
+        duration: reservation.duration,
+        endTime: format(
+          addMinutes(parseISO(`${reservation.date}T${reservation.startTime}`), reservation.duration),
+          "HH:mm"
+        ),
+      }));
     } catch (error) {
       console.error("Erreur lors de la récupération des réservations:", error);
       return [];
     }
   };
   
-
   const fetchSalonData = async (targetSalon: string) => {
     setLoading(true);
     setError(null);
@@ -128,7 +151,7 @@ export default function WeeklyTimeSlotSelector({
       console.log("Dates demandées:", dates);
 
       // Récupérer les réservations existantes
-      const bookings = await fetchBookings(targetSalon, dates);
+      const bookings = await fetchBookings(targetSalon, dates, durationInMinutes);
       setExistingBookings(bookings);
 
       const url = `/api/opening-hours?salon=${encodeURIComponent(

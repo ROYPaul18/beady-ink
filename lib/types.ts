@@ -77,6 +77,8 @@ export interface ReservationWithUser {
   user: {
     id: number;
     email: string;
+    telephone?:string;
+    nom?: string;
   };
   createdAt: Date;
   updatedAt: Date;
