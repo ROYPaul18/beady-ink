@@ -178,6 +178,7 @@ export default function ReservationList({ reservations }: ReservationListProps) 
                           <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
                           <p><strong>Salon :</strong> {reservation.salon}</p>
                           <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
+                          <p><strong>Prestations :</strong> {reservation.prestations.map(p => p.name).join(', ')}</p>
                         </li>
                       ))}
                     </ul>

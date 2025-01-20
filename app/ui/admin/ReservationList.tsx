@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { ReservationWithUser } from "@/lib/types";
-
+interface User {
+  id: number;
+  email: string;
+  telephone?: string; // Ajoutez cette ligne
+  nom?: string; // Ajoutez d'autres propriétés si nécessaires
+}
 interface ReservationListProps {
   reservations: ReservationWithUser[];
   onAccept: (reservationId: number) => void;
