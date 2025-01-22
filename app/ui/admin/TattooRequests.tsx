@@ -1,25 +1,34 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import { useState } from "react";
-import { TattooRequestWithUser, FlashTattooRequestWithUser } from "@/lib/types";
+import {
+  TattooRequestWithUser,
+  FlashTattooRequestWithUser,
+  Prestation,
+} from "@/lib/types";
 import { saveAs } from "file-saver";
 
 interface TattooRequestsProps {
   tattooRequests: TattooRequestWithUser[];
   flashTattooRequests: FlashTattooRequestWithUser[];
+  prestations: Prestation[];
 }
 
 export default function TattooRequests({
   tattooRequests,
   flashTattooRequests,
+  prestations,
 }: TattooRequestsProps) {
   const [activeTab, setActiveTab] = useState<
     "tattoo" | "flashTattoo" | "validatedTattoo" | "validatedFlashTattoo"
   >("tattoo");
 
-  const [validatedTattooRequests, setValidatedTattooRequests] = useState<TattooRequestWithUser[]>([]);
-  const [validatedFlashTattooRequests, setValidatedFlashTattooRequests] = useState<FlashTattooRequestWithUser[]>([]);
+  const [validatedTattooRequests, setValidatedTattooRequests] = useState<
+    TattooRequestWithUser[]
+  >([]);
+  const [validatedFlashTattooRequests, setValidatedFlashTattooRequests] =
+    useState<FlashTattooRequestWithUser[]>([]);
 
   const downloadHealthDataCSV = (
     healthData: { [key: string]: string },
@@ -36,8 +45,21 @@ export default function TattooRequests({
     setValidatedTattooRequests((prev) => [...prev, request]);
   };
 
-  const handleValidateFlashTattooRequest = (request: FlashTattooRequestWithUser) => {
+  const handleValidateFlashTattooRequest = (
+    request: FlashTattooRequestWithUser
+  ) => {
     setValidatedFlashTattooRequests((prev) => [...prev, request]);
+  };
+
+  const getFlashTattooDetails = (
+    flashTattooId: number,
+    prestations: Prestation[]
+  ) => {
+    const prestation = prestations.find((p) => p.id === flashTattooId);
+    return {
+      image: prestation?.images.length ? prestation.images[0].url : null,
+      name: prestation?.name || "Inconnu", // Si le nom n'existe pas, mettre "Inconnu"
+    };
   };
 
   return (
@@ -50,7 +72,9 @@ export default function TattooRequests({
       <div className="grid grid-cols-4 gap-2 mb-4 md:flex md:gap-4">
         <button
           className={`px-3 py-2 text-sm rounded transition-colors ${
-            activeTab === "tattoo" ? "bg-green text-white" : "bg-gray-200 text-gray-700 hover:bg-green/20"
+            activeTab === "tattoo"
+              ? "bg-green text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-green/20"
           }`}
           onClick={() => setActiveTab("tattoo")}
         >
@@ -58,7 +82,9 @@ export default function TattooRequests({
         </button>
         <button
           className={`px-3 py-2 text-sm rounded transition-colors ${
-            activeTab === "flashTattoo" ? "bg-green text-white" : "bg-gray-200 text-gray-700 hover:bg-green/20"
+            activeTab === "flashTattoo"
+              ? "bg-green text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-green/20"
           }`}
           onClick={() => setActiveTab("flashTattoo")}
         >
@@ -66,7 +92,9 @@ export default function TattooRequests({
         </button>
         <button
           className={`px-3 py-2 text-sm rounded transition-colors ${
-            activeTab === "validatedTattoo" ? "bg-green text-white" : "bg-gray-200 text-gray-700 hover:bg-green/20"
+            activeTab === "validatedTattoo"
+              ? "bg-green text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-green/20"
           }`}
           onClick={() => setActiveTab("validatedTattoo")}
         >
@@ -74,7 +102,9 @@ export default function TattooRequests({
         </button>
         <button
           className={`px-3 py-2 text-sm rounded transition-colors ${
-            activeTab === "validatedFlashTattoo" ? "bg-green text-white" : "bg-gray-200 text-gray-700 hover:bg-green/20"
+            activeTab === "validatedFlashTattoo"
+              ? "bg-green text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-green/20"
           }`}
           onClick={() => setActiveTab("validatedFlashTattoo")}
         >
@@ -88,22 +118,29 @@ export default function TattooRequests({
           {tattooRequests
             .filter((request) => !validatedTattooRequests.includes(request))
             .map((request) => (
-              <div key={request.id} className="bg-white rounded-lg shadow-md p-4">
+              <div
+                key={request.id}
+                className="bg-white rounded-lg shadow-md p-4"
+              >
                 <div className="space-y-2">
                   <p>
-                    <span className="font-medium">Nom :</span> {request.user.nom}
+                    <span className="font-medium">Nom :</span>{" "}
+                    {request.user.nom}
                   </p>
                   <p>
-                    <span className="font-medium">Téléphone :</span> {request.user.phone}
+                    <span className="font-medium">Téléphone :</span>{" "}
+                    {request.user.phone}
                   </p>
                   <p>
-                    <span className="font-medium">Disponibilité :</span> {request.availability}
+                    <span className="font-medium">Disponibilité :</span>{" "}
+                    {request.availability}
                   </p>
                   <p>
                     <span className="font-medium">Taille :</span> {request.size}
                   </p>
                   <p>
-                    <span className="font-medium">Emplacement :</span> {request.placement}
+                    <span className="font-medium">Emplacement :</span>{" "}
+                    {request.placement}
                   </p>
 
                   {/* Images de référence */}
@@ -129,7 +166,12 @@ export default function TattooRequests({
                   {/* Actions */}
                   <div className="flex gap-4 mt-4">
                     <button
-                      onClick={() => downloadHealthDataCSV(request.healthData, request.user.nom)}
+                      onClick={() =>
+                        downloadHealthDataCSV(
+                          request.healthData,
+                          request.user.nom
+                        )
+                      }
                       className="px-4 py-2 text-sm bg-green text-white rounded hover:bg-green/90"
                     >
                       Télécharger le Questionnaire
@@ -150,36 +192,57 @@ export default function TattooRequests({
       {activeTab === "flashTattoo" && (
         <div className="space-y-4">
           {flashTattooRequests
-            .filter((request) => !validatedFlashTattooRequests.includes(request))
-            .map((request) => (
-              <div key={request.id} className="bg-white rounded-lg shadow-md p-4">
-                <div className="space-y-2">
-                  <p>
-                    <span className="font-medium">Nom :</span> {request.user.nom}
-                  </p>
-                  <p>
-                    <span className="font-medium">Téléphone :</span> {request.user.phone}
-                  </p>
-                  <p>
-                    <span className="font-medium">Flash Tattoo ID :</span> {request.flashTattooId}
-                  </p>
-                  <div className="flex gap-4 mt-4">
-                    <button
-                      onClick={() => downloadHealthDataCSV(request.healthData, request.user.nom)}
-                      className="px-4 py-2 text-sm bg-green text-white rounded hover:bg-green/90"
-                    >
-                      Télécharger le Questionnaire
-                    </button>
-                    <button
-                      onClick={() => handleValidateFlashTattooRequest(request)}
-                      className="px-4 py-2 text-sm bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                    >
-                      Valider
-                    </button>
+            .filter(
+              (request) => !validatedFlashTattooRequests.includes(request)
+            )
+            .map((request) => {
+              const { image: flashImage, name: prestationName } =
+                getFlashTattooDetails(request.flashTattooId, prestations);
+
+              return (
+                <div
+                  key={request.id}
+                  className="bg-white rounded-lg shadow-md p-4"
+                >
+                  <div className="space-y-2">
+                    <p>
+                      <span className="font-medium">Nom :</span>{" "}
+                      {request.user.nom}
+                    </p>
+                    <p>
+                      <span className="font-medium">Téléphone :</span>{" "}
+                      {request.user.phone}
+                    </p>
+                    <p>
+                      <span className="font-medium">Prestation :</span>{" "}
+                      {prestationName}
+                    </p>
+                    {/* Affichage de l'image du flash tattoo */}
+                    <div className="flex gap-4 mt-4">
+                      <button
+                        onClick={() =>
+                          downloadHealthDataCSV(
+                            request.healthData,
+                            request.user.nom
+                          )
+                        }
+                        className="px-4 py-2 text-sm bg-green text-white rounded hover:bg-green/90"
+                      >
+                        Télécharger le Questionnaire
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleValidateFlashTattooRequest(request)
+                        }
+                        className="px-4 py-2 text-sm bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                      >
+                        Valider
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       )}
 
@@ -191,13 +254,15 @@ export default function TattooRequests({
                 <span className="font-medium">Nom :</span> {request.user.nom}
               </p>
               <p>
-                <span className="font-medium">Disponibilité :</span> {request.availability}
+                <span className="font-medium">Disponibilité :</span>{" "}
+                {request.availability}
               </p>
               <p>
                 <span className="font-medium">Taille :</span> {request.size}
               </p>
               <p>
-                <span className="font-medium">Emplacement :</span> {request.placement}
+                <span className="font-medium">Emplacement :</span>{" "}
+                {request.placement}
               </p>
             </div>
           ))}
@@ -212,7 +277,8 @@ export default function TattooRequests({
                 <span className="font-medium">Nom :</span> {request.user.nom}
               </p>
               <p>
-                <span className="font-medium">Flash Tattoo ID :</span> {request.flashTattooId}
+                <span className="font-medium">Flash Tattoo ID :</span>{" "}
+                {request.flashTattooId}
               </p>
             </div>
           ))}

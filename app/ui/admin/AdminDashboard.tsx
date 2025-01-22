@@ -148,11 +148,11 @@ export default function AdminDashboard({
           <OpeningHoursEditor initialHours={formattedOpeningHours} salon="Flavigny" />
         </div>
       )}
-
       {activeTab === 'tattooRequests' && (
         <TattooRequests
           tattooRequests={tattooRequests}
           flashTattooRequests={flashTattooRequests}
+          prestations={prestationsWithCategory}
         />
       )}
     </div>

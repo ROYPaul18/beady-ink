@@ -93,6 +93,10 @@ export interface FlashTattooRequestWithUser {
     phone: string;
   };
   flashTattooId: number;
+  // images: {             // Liste des images associées à la requête
+  //   id: number;         // Identifiant unique de l'image
+  //   url: string; 
+  // }
   // imageUrl: string[];
 }
 

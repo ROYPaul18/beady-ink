@@ -37,7 +37,6 @@ const FlashTattooGallery: React.FC<FlashTattooGalleryProps> = ({ prestations }) 
           </div>
           <div className="p-4 text-center bg-black bg-opacity-60">
             <h3 className="text-lg font-bold mb-1 text-white">{prestation.name}</h3>
-            <p className="text-white font-semibold">À partir de {prestation.price} €</p>
           </div>
         </div>
       ))}
