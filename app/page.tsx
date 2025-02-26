@@ -17,7 +17,6 @@ export default function Home() {
         style={{ objectFit: "cover", zIndex: -1 }} 
         priority
       />
-      
       {/* Contenu de la page */}
       <Hero />
       <Salons />
