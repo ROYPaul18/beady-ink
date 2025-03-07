@@ -1,9 +1,9 @@
-'use client';
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+"use client";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 interface ExtendedUser {
   name?: string | null;
@@ -12,7 +12,7 @@ interface ExtendedUser {
   id?: number;
   nom?: string;
   prenom?: string;
-  role?: 'USER' | 'ADMIN';
+  role?: "USER" | "ADMIN";
 }
 
 const Header = () => {
@@ -23,10 +23,15 @@ const Header = () => {
   const pathname = usePathname();
 
   const getBackgroundImage = () => {
-    if (pathname === '/tatouage' || pathname === '/tattoo' || pathname === '/reservation/tatouage' || pathname === '/reservation/flashtattoo') {
-      return '/img/bg-fleur.jpg';
+    if (
+      pathname === "/tatouage" ||
+      pathname === "/tattoo" ||
+      pathname === "/reservation/tatouage" ||
+      pathname === "/reservation/flashtattoo"
+    ) {
+      return "/img/bg-fleur.jpg";
     } else {
-      return '/img/bg-feuille.jpg';
+      return "/img/bg-feuille.jpg";
     }
   };
 
@@ -48,27 +53,27 @@ const Header = () => {
 
   useEffect(() => {
     if (menuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     }
 
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     };
   }, [menuOpen]);
 
-  const isAuthenticated = status === 'authenticated';
-  const isAdmin = user?.role === 'ADMIN';
+  const isAuthenticated = status === "authenticated";
+  const isAdmin = user?.role === "ADMIN";
 
   return (
-    <header className={`relative ${menuOpen ? 'h-screen' : 'h-auto'}`}>
+    <header className={`relative ${menuOpen ? "h-screen" : "h-auto"}`}>
       <div className="absolute inset-0 -z-10">
         <Image
           src={getBackgroundImage()}
           alt="Background image"
           fill
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: "cover" }}
           priority
         />
       </div>
@@ -81,41 +86,43 @@ const Header = () => {
         <button
           className="block lg:hidden text-3xl focus:outline-none text-white"
           onClick={toggleMenu}
-          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
         >
-          {menuOpen ? '✕' : '☰'}
+          {menuOpen ? "✕" : "☰"}
         </button>
       </div>
 
-      <nav className={`${
+      <nav
+        className={`${
           menuOpen
-            ? 'fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-start pt-16 pb-24 overflow-y-auto'
-            : 'hidden'
-        } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}>
-        <div className="flex flex-col items-center gap-1 lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20 mb-6">
-          <h1 className="text-2xl p-3 text-center text-white">
+            ? "fixed top-0 left-0 w-full h-screen z-40 flex flex-col items-center justify-start pt-16 pb-24 overflow-y-auto"
+            : "hidden"
+        } lg:flex lg:relative lg:justify-center lg:items-center p-4 lg:p-0 lg:pt-0 relative z-10`}
+      >
+        <div className="flex flex-col items-center gap-1 lg:flex-row lg:gap-4 lg:justify-center lg:w-full lg:mx-20 mb-6 lg:mb-2">
+          <h1 className="text-2xl p-3 text-center text-white lg:flex lg:items-center">
             <Link href="/" onClick={closeMenu}>
               Accueil
             </Link>
           </h1>
-          <h1 className="text-2xl p-3 text-center text-white">
+          <h1 className="text-2xl p-3 text-center text-white lg:flex lg:items-center">
             <Link href="/onglerie" onClick={closeMenu}>
               Onglerie
             </Link>
           </h1>
-          <h1 className="text-2xl p-3 text-center text-white">
+          <h1 className="text-2xl p-3 text-center text-white lg:flex lg:items-center">
             <Link href="/tatouage" onClick={closeMenu}>
               Tatouage
             </Link>
           </h1>
-          <h1 className="text-2xl p-3 text-center text-white">
+          <h1 className="text-2xl p-3 text-center text-white lg:flex lg:items-center">
             <Link href="/tattoo" onClick={closeMenu}>
               Flash Tattoo
             </Link>
           </h1>
         </div>
 
-        <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4 w-full max-w-xs lg:max-w-none mx-auto lg:mx-0 lg:w-auto px-4">
+        <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-4 lg:absolute lg:right-4 lg:top-1/2 lg:-translate-y-1/2 w-full max-w-xs lg:max-w-none mx-auto lg:mx-0 lg:w-auto px-4">
           <div className="relative w-full lg:w-auto">
             <div className="flex flex-col gap-3 lg:hidden rounded-lg w-full">
               {!isAuthenticated ? (
@@ -157,7 +164,7 @@ const Header = () => {
                     onClick={() => {
                       signOut({
                         redirect: true,
-                        callbackUrl: '/',
+                        callbackUrl: "/",
                       });
                       closeMenu();
                     }}
@@ -169,7 +176,11 @@ const Header = () => {
               )}
             </div>
 
-            <button onClick={toggleDropdown} className="hidden lg:block" aria-label="Ouvrir le menu utilisateur">
+            <button
+              onClick={toggleDropdown}
+              className="hidden lg:block"
+              aria-label="Ouvrir le menu utilisateur"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -210,7 +221,7 @@ const Header = () => {
                         onClick={() => {
                           signOut({
                             redirect: true,
-                            callbackUrl: '/',
+                            callbackUrl: "/",
                           });
                           closeDropdown();
                           closeMenu();
@@ -290,4 +301,4 @@ const Header = () => {
   );
 };
 
-export default Header;  
+export default Header;

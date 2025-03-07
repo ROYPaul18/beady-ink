@@ -144,7 +144,7 @@ export default function ReservationList({ reservations }: ReservationListProps) 
                           key={reservation.id}
                           className={`p-4 border rounded-md shadow-sm ${getStatusStyles(reservation.status)}`}
                         >
-                          <p><strong>Date :</strong> {format(new Date(reservation.date), "dd/MM/yyyy HH:mm")}</p>
+                          <p><strong>Date :</strong> {new Date(reservation.date).toLocaleString('fr-FR', { timeZone: 'UTC' })}</p>
                           <p><strong>Salon :</strong> {reservation.salon}</p>
                           <p><strong>Statut :</strong> {getStatusLabel(reservation.status)}</p>
                           {reservation.status === "REJECTED" && (

@@ -77,7 +77,7 @@ export default function ReservationList({
                   </li>
                 ))}
               </ul>
-              {/* Afficher les boutons pour accepter ou rejeter uniquement pour les réservations en attente */}
+  
               {reservation.status === "PENDING" && (
                 <div className="flex gap-2 mt-4">
                   <button
